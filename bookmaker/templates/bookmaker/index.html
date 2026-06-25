@@ -1,0 +1,498 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ブックメーカー</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="board-body">
+
+    <header class="bm-header fixed-header">
+        <div class="header-left">
+            <a href="{% url 'top_page' %}" class="btn btn-secondary">
+                ⬅ 掲示板画面に戻る
+            </a>
+            <h1 class="page-main-title">ブックメーカー</h1>
+        </div>
+        
+        <div class="header-right action-buttons">
+            <button type="button" class="btn btn-secondary" id="openManageModalBtn">お題の管理</button>
+            <button type="button" class="btn btn-primary" id="openModalBtn">+ お題を追加</button>
+        </div>
+    </header>
+
+    <div class="board-container">
+
+        <details class="card betting-status-details">
+            <summary class="betting-status-title">
+                <div class="betting-title-flex">
+                    <span style="font-weight: 600;">あなたの現在のベッティング状況を見る</span>
+                    {% if profile %}
+                        <span class="point-badge">
+                            現在の持ちポイント: <strong>{{ profile.currentpoint }}</strong> pt
+                        </span>
+                    {% endif %}
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            
+            <div class="betting-status-content">
+                {% if my_bets %}
+                    <div class="betting-summary-container">
+                        <div class="stat-mini-card">
+                            <span class="stat-label">総ベッティング数</span>
+                            <span class="stat-value"><strong>{{ my_bets|length }}</strong> 回</span>
+                        </div>
+                        <div class="stat-mini-card">
+                            <span class="stat-label">トータル賭け金</span>
+                            <span class="stat-value"><span id="total-bet-sum">0</span> pt</span>
+                        </div>
+                        <div class="stat-mini-card">
+                            <span class="stat-label">トータル払い戻し</span>
+                            <span class="stat-value"><span id="total-payout-sum">0</span> pt</span>
+                        </div>
+                        <div class="stat-mini-card" style="border-color: #cbd5e1; background: #f1f5f9;">
+                            <span class="stat-label">通算回収率</span>
+                            <span class="stat-value" id="recovery-rate">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="bet-table-wrapper">
+                        <table class="bet-history-table">
+                            <thead>
+                                <tr>
+                                    <th>ステータス</th>
+                                    <th>対象のお題</th>
+                                    <th>あなたの賭け</th>
+                                    <th class="num-col">オッズ</th>
+                                    <th class="num-col">賭け金</th>
+                                    <th class="num-col">払い戻し</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bet in my_bets %}
+                                    <tr class="bet-item {% if bet.optid.topicid.status == 'closed' %}{% if bet.optid.is_correct %}tr-win{% else %}tr-lose{% endif %}{% else %}tr-pending{% endif %}">
+                                        <td>
+                                            <span class="bet-badge-wrap">
+                                                {% if bet.optid.topicid.status == 'closed' %}
+                                                    {% if bet.optid.is_correct %}
+                                                        <span class="badge badge-win" style="padding: 2px 6px; font-size: 11px; background-color: #ff7a00; color: white;">的中</span>
+                                                    {% else %}
+                                                        <span class="badge badge-lose" style="padding: 2px 6px; font-size: 11px;">不的中</span>
+                                                    {% endif %}
+                                                {% elif bet.optid.topicid.deadtime < now %}
+                                                    <span class="badge badge-pending" style="padding: 2px 6px; font-size: 11px;">結果待ち</span>
+                                                {% else %}
+                                                    <span class="badge badge-active" style="padding: 2px 6px; font-size: 11px;">受付中</span>
+                                                {% endif %}
+                                            </span>
+                                        </td>
+
+                                        <td class="table-topic-title" title="{{ bet.optid.topicid.topictitle }}">
+                                            {{ bet.optid.topicid.topictitle }}
+                                        </td>
+
+                                        <td class="table-option-text">
+                                            # {{ bet.optid.text }}
+                                        </td>
+
+                                        <td class="num-col bet-odds-num">
+                                            {{ bet.optid.odds }}倍
+                                        </td>
+
+                                        <td class="num-col">
+                                            <span class="bet-point-total" data-bet="{{ bet.betpoint }}">{{ bet.betpoint }}</span> pt
+                                        </td>
+
+                                        <td class="num-col payout-result" style="font-weight: 700;">
+                                            {% if bet.optid.topicid.status == 'closed' %}
+                                                {% if bet.optid.is_correct %}
+                                                    <span class="payout-amount payout-win" data-payout="WIN" data-odds="{{ bet.optid.odds }}" data-bet="{{ bet.betpoint }}" style="color: #ea580c;">
+                                                        計算中...
+                                                    </span>
+                                                {% else %}
+                                                    <span class="payout-amount payout-lose" data-payout="0">0 pt</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="payout-amount payout-pending" data-payout="PENDING">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% else %}
+                    <p class="no-bets-text">現在、賭けているお題はありません。</p>
+                {% endif %}
+            </div>
+        </details>
+
+        <div class="card margin-top-lg border-kpmg-blue" style="overflow: hidden; border: 1px solid #cbd5e1; border-radius: 8px;">
+            <details class="ranking-toggle-wrapper" style="width: 100%;">
+                
+                <summary style="background-color: #f8fafc; padding: 14px 16px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; border-bottom: 1px solid transparent;">
+                    <h3 style="margin: 0; font-size: 16px; color: #00338d; display: flex; align-items: center; gap: 8px;">
+                        🏆 社内ポイントランキング（Top 10）
+                    </h3>
+                    <span class="toggle-arrow" style="font-size: 14px; color: #64748b; transition: transform 0.2s ease;">▶</span>
+                </summary>
+
+                <div class="card-body" style="padding: 0; border-top: 1px solid #e2e8f0; background-color: #fff;">
+                    <table class="bet-history-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead>
+                            <tr style="background-color: #f1f5f9; text-align: left; border-bottom: 2px solid #cbd5e1;">
+                                <th style="padding: 10px 16px; width: 80px;">順位</th>
+                                <th style="padding: 10px 16px;">ユーザー名</th>
+                                <th style="padding: 10px 16px; text-align: right; width: 150px;">保有ポイント</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rank_user in ranking_list %}
+                            <tr style="border-bottom: 1px solid #e2e8f0; {% if rank_user.uid == request.user %}background-color: #fef08a !important; font-weight: bold;{% endif %}">
+                                <td style="padding: 12px 16px;">
+                                    {% if forloop.counter == 1 %}🥇 1位
+                                    {% elif forloop.counter == 2 %}🥈 2位
+                                    {% elif forloop.counter == 3 %}🥉 3位
+                                    {% else %}{{ forloop.counter }}位{% endif %}
+                                </td>
+                                <td style="padding: 12px 16px;">
+                                    {{ rank_user.name }}
+                                    {% if rank_user.uid == request.user %} <span style="font-size: 11px; color: #64748b;">(あなた)</span>{% endif %}
+                                </td>
+                                <td style="padding: 12px 16px; text-align: right; font-variant-numeric: tabular-nums;">
+                                    {{ rank_user.currentpoint }} pt
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" style="padding: 16px; text-align: center; color: #64748b;">
+                                    まだランキングデータがありません。
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+
+        <style>
+            /* 標準の黒三角矢印を非表示にする（ブラウザ対応） */
+            details.ranking-toggle-wrapper summary::-webkit-details-marker {
+                display: none;
+            }
+            
+            /* トグルが開いている（open属性がある）とき、右側の矢印を90度回転させて下を向かせる */
+            details.ranking-toggle-wrapper[open] .toggle-arrow {
+                transform: rotate(90deg);
+            }
+            
+            /* トグルが開いているとき、ヘッダーの下線をしっかり出す */
+            details.ranking-toggle-wrapper[open] summary {
+                border-bottom-color: #e2e8f0;
+            }
+        </style>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="{% if message.tags == 'error' %}error-msg{% else %}success-msg{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="tabs-container">
+            <button type="button" class="tab-button active" data-tab="active">現在受付中</button>
+            <button type="button" class="tab-button" data-tab="closed">終了・結果確定済み</button>
+        </div>
+
+        <div class="tab-slider-wrapper">
+            <div class="tab-content-slider" id="topicSlider">
+                
+                <div class="slider-pane">
+                    <div class="topic-grid">
+                        {% for topic in topics %}
+                            {% if topic.status != 'closed' and topic.deadtime > now %}
+                                <div class="card topic-card">
+                                    <h2 class="topic-title">{{ topic.topictitle }}</h2>
+                                    <div class="topic-meta">
+                                        <span class="meta-author">{{ topic.uid.username }}</span>
+                                        <span class="meta-divider">|</span>
+                                        <span>期限: {{ topic.deadtime|date:"m-d H:i" }}</span>
+                                    </div>
+                                    <p class="topic-detail">{{ topic.topicdetailtext }}</p>
+
+                                    <div class="option-container">
+                                        {% for option in topic.options.all %}
+                                        <div class="option-box">
+                                            <div class="option-info-zone">
+                                                <span class="bet-option-text">{{ option.text }}</span>
+                                                <span class="bet-odds-badge">{{ option.odds }}倍</span>
+                                            </div>
+                                            
+                                            <form action="{% url 'bookmaker:topic_detail' topic.topicid %}" method="POST" class="bet-action-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="option_id" value="{{ option.optid }}">
+                                                <input type="number" name="bet_point" value="100" min="1" class="bet-input-pt">
+                                                <span class="unit-pt">pt</span>
+                                                <button type="submit" class="btn btn-primary btn-bet">賭ける</button>
+                                            </form>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="slider-pane">
+                    <div class="topic-grid-closed">
+                        {% for topic in topics %}
+                            {% if topic.status == 'closed' or topic.deadtime <= now %}
+                                <div class="card topic-card topic-closed">
+                                    <h2 class="topic-title">{{ topic.topictitle }}</h2>
+                                    <div class="topic-meta">
+                                        <span>期限: {{ topic.deadtime|date:"Y-m-d" }}</span>
+                                        <span class="meta-divider">|</span>
+                                        <span class="status-text-closed">
+                                            {% if topic.status == 'closed' %}[結果確定済]{% else %}[締め切り]{% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="option-container-closed">
+                                        {% for option in topic.options.all %}
+                                        <div class="option-box-closed {% if option.is_correct %}correct-option-compact{% endif %}" {% if option.is_correct %}style="background-color: #fff7ed; border-color: #ff7a00;"{% endif %}>
+                                            <span class="bet-option-text"># {{ option.text }}</span>
+                                            <span class="bet-odds-closed">
+                                                {{ option.odds }}倍
+                                                {% if option.is_correct %}<span class="badge-correct-text-compact" style="color: #ea580c; font-weight: bold; margin-left: 4px;">正解</span>{% endif %}
+                                            </span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="postModal" class="modal-overlay">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h3>新規お題の追加</h3>
+                <button type="button" id="closeModalBtn" class="modal-close-x">&times;</button>
+            </div>
+            <form method="POST" action="{% url 'bookmaker:topic_list' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>お題のタイトル</label>
+                    <input type="text" name="topictitle" placeholder="例: 今週末の試合で勝つのはどっち？" required>
+                </div>
+                <div class="form-group">
+                    <label>詳しい説明</label>
+                    <textarea name="topicdetailtext" placeholder="ルールや詳細を記入してください" required></textarea>
+                </div>
+                
+                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                        <label style="font-weight: 600; font-size: 13px;">選択肢 1（必須）</label>
+                        <input type="text" name="option1" placeholder="チームA" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; font-size: 13px;">選択肢 2（必須）</label>
+                        <input type="text" name="option2" placeholder="チームB" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                </div>
+                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                        <label style="font-weight: 600; font-size: 13px;">選択肢 3（任意）</label>
+                        <input type="text" name="option3" placeholder="チームC（あれば）" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; font-size: 13px;">選択肢 4（任意）</label>
+                        <input type="text" name="option4" placeholder="引き分け（あれば）" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>締め切り日時</label>
+                    <input type="datetime-local" name="deadtime" required>
+                </div>
+                <div class="form-submit-wrap">
+                    <button type="submit" class="btn btn-primary full-width">このお題を公開する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="manageModal" class="modal-overlay">
+        <div class="modal-content card modal-large">
+            <div class="modal-header">
+                <h3>作成したお題一覧</h3>
+                <button type="button" id="closeManageModalBtn" class="modal-close-x">&times;</button>
+            </div>
+            <div class="manage-topic-list" style="display: flex; flex-direction: column; gap: 16px; max-height: 70vh; overflow-y: auto; padding: 4px;">
+                {% for my_topic in my_created_topics %}
+                    <div class="manage-topic-item" style="border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 12px;">
+                            <div>
+                                <strong class="manage-topic-title" style="font-size: 16px; color: #1e293b; display: block; margin-bottom: 4px;">{{ my_topic.topictitle }}</strong>
+                                <span class="manage-topic-date" style="font-size: 12px; color: #64748b;">期限: {{ my_topic.deadtime|date:"Y-m-d H:i" }}</span>
+                            </div>
+                            
+                            <div>
+                                {% if my_topic.status == 'closed' %}
+                                    <span style="background: #fff7ed; color: #ea580c; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap;">結果確定済み</span>
+                                {% elif my_topic.deadtime > now %}
+                                    <span style="background: #eff6ff; color: #2563eb; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap;">受付中</span>
+                                {% else %}
+                                    <span style="background: #fff7ed; color: #ea580c; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap;">結果入力待ち</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-top: 8px; font-size: 14px;">
+                            {% if my_topic.status == 'closed' %}
+                                <span style="color: #475569; font-weight: 500;">
+                                    正解選択肢: 
+                                    <strong style="color: #ea580c;">
+                                        {% for opt in my_topic.options.all %}
+                                            {% if opt.is_correct %}{{ opt.text }}{% endif %}
+                                        {% endfor %}
+                                    </strong>
+                                </span>
+                            {% elif my_topic.deadtime > now %}
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                    <span style="color: #64748b; font-size: 13px;">※ 期限が到来するか、受付を終了すると結果入力が可能になります。</span>
+                                    <form method="POST" action="{% url 'bookmaker:set_topic_result' my_topic.topicid %}" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="force_close" value="true">
+                                        <button type="submit" class="btn" style="background: #ef4444; color: white; padding: 6px 12px; font-size: 13px; border-radius: 4px; font-weight: 600; border: none; cursor: pointer;" onclick="return confirm('本当にこのお題の受付を強制終了しますか？（元には戻せません）')">
+                                            受付を終了する
+                                        </button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <form method="POST" action="{% url 'bookmaker:set_topic_result' my_topic.topicid %}" class="result-select-form" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <label class="result-select-label" style="font-weight: 600; color: #334155; display: block; margin-bottom: 8px;">正解となる選択肢を選択して確定してください：</label>
+                                    <div class="result-options-group" style="display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap;">
+                                        {% for opt in my_topic.options.all %}
+                                            <label class="result-radio-label" style="display: flex; align-items: center; gap: 6px; cursor: pointer; background: #fff; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                                <input type="radio" name="winning_option" value="{{ opt.optid }}" required style="cursor: pointer;">
+                                                {{ opt.text }}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                    <button type="submit" class="btn btn-primary small-btn" style="width: 100%; padding: 8px; font-weight: 600;">結果を確定させてポイントを分配する</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="empty-text" style="text-align: center; color: #64748b; padding: 32px 0;">あなたが作成したお題はまだありません。</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+<script>
+    // タブ切り替え（左右スライド制御）
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const topicSlider = document.getElementById('topicSlider');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const tabTarget = button.getAttribute('data-tab');
+            if (tabTarget === 'active') {
+                topicSlider.style.transform = 'translateX(0%)';
+            } else if (tabTarget === 'closed') {
+                topicSlider.style.transform = 'translateX(-50%)';
+            }
+        });
+    });
+
+    // 1. 新規投稿ポップアップの制御
+    const postModal = document.getElementById('postModal');
+    const openPostBtn = document.getElementById('openModalBtn');
+    const closePostBtn = document.getElementById('closeModalBtn');
+
+    openPostBtn.addEventListener('click', () => { postModal.classList.add('is-active'); });
+    closePostBtn.addEventListener('click', () => { closePostBtn.parentElement.parentElement.parentElement.classList.remove('is-active'); });
+
+    // 2. お題管理ポップアップの制御
+    const manageModal = document.getElementById('manageModal');
+    const openManageBtn = document.getElementById('openManageModalBtn');
+    const closeManageBtn = document.getElementById('closeManageModalBtn');
+
+    openManageBtn.addEventListener('click', () => { manageModal.classList.add('is-active'); });
+    closeManageBtn.addEventListener('click', () => { manageModal.classList.remove('is-active'); });
+
+    // 3. 背景クリックで閉じる処理
+    window.addEventListener('click', (e) => {
+        if (e.target === postModal) postModal.classList.remove('is-active');
+        if (e.target === manageModal) manageModal.classList.remove('is-active');
+    });
+
+    // 4. 自動払い戻し＆戦績サマリー計算
+    document.addEventListener("DOMContentLoaded", () => {
+        let totalBet = 0;
+        let totalPayout = 0;
+
+        document.querySelectorAll('.bet-history-table tbody .bet-item').forEach(item => {
+            const betTotalEl = item.querySelector('.bet-point-total');
+            if (!betTotalEl) return;
+
+            const betPoint = parseInt(betTotalEl.getAttribute('data-bet')) || 0;
+            totalBet += betPoint;
+
+            const payoutEl = item.querySelector('.payout-amount');
+            if (!payoutEl) return;
+            
+            const status = payoutEl.getAttribute('data-payout');
+
+            if (status === "WIN") {
+                const odds = parseFloat(payoutEl.getAttribute('data-odds')) || 1.0;
+                const payout = Math.round(betPoint * odds);
+                payoutEl.textContent = `+${payout} pt`;
+                totalPayout += payout;
+            } else if (status === "0") {
+                totalPayout += 0;
+            } else {
+                totalBet -= betPoint; 
+            }
+        });
+
+        const totalBetSumEl = document.getElementById('total-bet-sum');
+        const totalPayoutSumEl = document.getElementById('total-payout-sum');
+        const recoveryRateEl = document.getElementById('recovery-rate');
+
+        if (totalBetSumEl) {
+            const displayTotalBet = totalBet <= 0 ? [...document.querySelectorAll('.bet-point-total')].reduce((a, b) => a + parseInt(b.getAttribute('data-bet')), 0) : totalBet;
+            totalBetSumEl.textContent = displayTotalBet;
+            totalPayoutSumEl.textContent = totalPayout;
+
+            if (totalBet > 0) {
+                const rate = Math.round((totalPayout / totalBet) * 100);
+                recoveryRateEl.textContent = `${rate}%`;
+                recoveryRateEl.style.color = rate >= 100 ? "#ff530d" : "#64748b";
+            } else {
+                recoveryRateEl.textContent = "--- % (結果待ち)";
+                recoveryRateEl.style.color = "#64748b";
+            }
+        }
+    });
+</script>
+</body>
+</html>

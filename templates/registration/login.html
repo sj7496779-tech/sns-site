@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ログイン - VScodeSNS</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="card login-card">
+            <h1 class="login-title">LOGIN</h1>
+            
+            {% if form.errors %}
+                <div class="error-msg">
+                    ユーザー名かパスワードが違います。
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>ユーザー名</label>
+                    {{ form.username }}
+                </div>
+                
+                <div class="form-group">
+                    <label>パスワード</label>
+                    {{ form.password }}
+                </div>
+                
+                <div class="form-submit-wrap">
+                    <button type="submit" class="btn btn-primary full-width">ログインする</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,280 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction
+
+# ==========================================
+# 1. お題の一覧画面 ＆ 新規投稿処理（選択肢最大4つ＆ランキング対応）
+# ==========================================
+def topic_list(request):
+    # 【投稿処理】もし画面から「お題の投稿」フォームが送信されてきたら
+    if request.method == 'POST' and 'topictitle' in request.POST:
+        if not request.user.is_authenticated:
+            messages.error(request, 'お題を投稿するにはログインが必要です。')
+            return redirect('bookmaker:topic_list')
+            
+        topictitle = request.POST.get('topictitle')
+        topicdetailtext = request.POST.get('topicdetailtext')
+        
+        # 画面から選択肢1〜4のテキストをすべて取得（3と4を追加）
+        option1_text = request.POST.get('option1')
+        option2_text = request.POST.get('option2')
+        option3_text = request.POST.get('option3')
+        option4_text = request.POST.get('option4')
+        
+        deadtime_raw = request.POST.get('deadtime')
+
+        # お題DB（Topic）に保存
+        topic = Topic.objects.create(
+            topictitle=topictitle,
+            topicdetailtext=topicdetailtext,
+            uid=request.user,  # 投稿者としてUserオブジェクトを紐付け
+            status='open',
+            deadtime=deadtime_raw
+        )
+
+        # 必須の選択肢1と2を保存
+        Option.objects.create(topicid=topic, text=option1_text)
+        Option.objects.create(topicid=topic, text=option2_text)
+
+        # 💡 選択肢3：文字が入っていれば（空文字でなければ）保存
+        if option3_text and option3_text.strip():
+            Option.objects.create(topicid=topic, text=option3_text.strip())
+
+        # 💡 選択肢4：文字が入っていれば（空文字でなければ）保存
+        if option4_text and option4_text.strip():
+            Option.objects.create(topicid=topic, text=option4_text.strip())
+
+        messages.success(request, '新しいお題を公開しました！')
+        return redirect('bookmaker:topic_list')
+
+    # 【表示処理】通常アクセス時
+    topics = Topic.objects.all().order_by('-deadtime')
+    
+    my_bets = None
+    profile = None
+    my_created_topics = None
+    
+    # 🏆 持ちポイントの高い順に全ユーザーのプロファイルを上位10名取得
+    ranking_list = AccountProfile.objects.all().order_by('-currentpoint')[:10]
+    
+    if request.user.is_authenticated:
+        # 自分が賭けている情報を、お題データまでまとめて取得
+        my_bets = Bet.objects.filter(uid=request.user).select_related('optid__topicid')
+        
+        # 自分が作成したお題を「uid_id」を用いて確実に取得
+        my_created_topics = Topic.objects.filter(uid_id=request.user.id).prefetch_related('options').order_by('-topicid')
+        
+        # 現在の持ちポイントを表示できるようにプロフィールも取得
+        profile, created = AccountProfile.objects.get_or_create(
+            uid=request.user, 
+            defaults={'name': request.user.username, 'currentpoint': 1000}
+        )
+
+    # テンプレートに送るデータをまとめる
+    context = {
+        'topics': topics,
+        'my_bets': my_bets,
+        'profile': profile,
+        'my_created_topics': my_created_topics,
+        'ranking_list': ranking_list,  # 👈 テンプレート側でランキング表示可能に
+        'now': timezone.now(),  # 期限切れ判定用に現在のシステム時刻を渡す
+    }
+    return render(request, 'bookmaker/index.html', context)
+
+
+# ==========================================
+# 2. お題の詳細 ＆ 投票（ベット）処理画面
+# ==========================================
+@login_required
+def topic_detail(request, topic_id):
+    topic = get_object_or_404(Topic, topicid=topic_id)
+    options = topic.options.all()
+    
+    # ログイン中のユーザーのプロフィールを取得
+    profile, created = AccountProfile.objects.get_or_create(
+        uid=request.user, 
+        defaults={'name': request.user.username, 'currentpoint': 1000}
+    )
+
+    if request.method == 'POST':
+        opt_id = request.POST.get('option_id')
+        try:
+            bet_point = int(request.POST.get('bet_point', 0))
+        except ValueError:
+            bet_point = 0
+
+        if not opt_id or bet_point <= 0:
+            messages.error(request, '正しい選択肢と1ポイント以上の賭け金を入力してください。')
+            return redirect('bookmaker:topic_list')
+
+        if profile.currentpoint < bet_point:
+            messages.error(request, f'ポイントが足りません！（現在の持ちポイント: {profile.currentpoint}pt）')
+            return redirect('bookmaker:topic_list')
+
+        option = get_object_or_404(Option, optid=opt_id, topicid=topic)
+
+        # 賭け金DB（Bet）に保存
+        bet, bet_created = Bet.objects.get_or_create(
+            uid=request.user,
+            optid=option,
+            defaults={'betpoint': 0}
+        )
+        
+        profile.currentpoint -= bet_point
+        bet.betpoint += bet_point
+        
+        profile.save()
+        bet.save()
+
+        messages.success(request, f'「{option.text}」に {bet_point}pt 賭けました！')
+        return redirect('bookmaker:topic_list')
+
+    return render(request, 'bookmaker/index.html', {
+        'topic': topic,
+        'options': options,
+        'profile': profile
+    })
+
+
+# ==========================================
+# 3. 掲示板（メインチャット）画面
+# ==========================================
+@login_required
+def top_board(request):
+    # ポスト（投稿）ボタンが押された時の処理
+    if request.method == 'POST':
+        chat_text = request.POST.get('chat_text')
+        topic_id = request.POST.get('topic_id')  # 💡画面から送られてきた「引用お題のID」を取得
+
+        if chat_text:
+            # データベースにチャットを保存
+            chat = Chat(
+                uid=request.user,  # 現在ログインしているユーザー
+                text=chat_text
+            )
+            
+            # 💡お題の引用指定がある場合、対象のお題をDBから取得して紐付ける
+            if topic_id:
+                try:
+                    chat.shared_topic = Topic.objects.get(topicid=topic_id)
+                except Topic.DoesNotExist:
+                    pass  # 万が一お題が存在しない場合は紐付けずに進む
+
+            chat.save()
+            
+        return redirect('top_page')  # 投稿後はページをリロード
+
+    # データベースからすべてのチャットを新しい順（timeの逆順）に取得
+    # 💡「.select_related('shared_topic')」を挟むことで、お題データを効率よく一括取得（SQL発行数を削減）します
+    chats = Chat.objects.all().select_related('shared_topic').order_by('-time')
+    
+    # 💡投稿フォームのドロップダウンに表示するため、現在受付中のお題リストを取得
+    # 期限（deadtime）が現在時刻より後、かつステータスが 'closed' 以外のお題
+    active_topics = Topic.objects.filter(
+        status='open', 
+        deadtime__gt=timezone.now()
+    ).order_by('-deadtime')
+
+    # テンプレートに chats と active_topics の両方を渡す
+    return render(request, 'top_board.html', {
+        'chats': chats, 
+        'active_topics': active_topics
+    })
+
+
+# ==========================================
+# 4. 掲示板のリアクション機能（いいね等）
+# ==========================================
+@login_required
+def toggle_reaction(request, chat_id):
+    if request.method == 'POST':
+        # 該当するチャットを取得
+        chat = Chat.objects.get(pk=chat_id)
+        
+        # 自分がすでにこのチャットにリアクションしているか探す
+        existing_reaction = Reaction.objects.filter(uid=request.user, chatid=chat)
+        
+        if existing_reaction.exists():
+            # すでにリアクションがあれば、クリックで「解除（削除）」する
+            existing_reaction.delete()
+        else:
+            # なければ、新しくリアクションを「登録（保存）」する
+            Reaction.objects.create(uid=request.user, chatid=chat)
+            
+    # 処理が終わったら元の掲示板トップに戻る
+    return redirect('top_page')
+
+
+# ==========================================
+# 5. お題の結果（答え）を確定させる処理 ＆ 強制終了処理
+# ==========================================
+@login_required
+def set_topic_result(request, topic_id):
+    if request.method == 'POST':
+        # 自分が作ったお題を「uid_id」形式で安全・確実に取得
+        topic = get_object_or_404(Topic, topicid=topic_id, uid_id=request.user.id)
+        
+        # すでにクローズされているお題なら処理をしない（二重配当の防止）
+        if topic.status == 'closed':
+            messages.error(request, 'このお題はすでに結果が確定しています。')
+            return redirect('bookmaker:topic_list')
+
+        # ─── 📥 【受付の強制終了（切り上げ）処理】 ───
+        if 'force_close' in request.POST:
+            topic.deadtime = timezone.now()  # 期限を現在のシステム時刻に上書き
+            topic.save()
+            messages.success(request, f'お題「{topic.topictitle}」の受付を強制終了しました。結果を確定させてください。')
+            return redirect('bookmaker:topic_list')
+
+        # ─── 🏆 【通常の結果確定処理】 ───
+        winning_opt_id = request.POST.get('winning_option')
+
+        if winning_opt_id:
+            # 1. まずこのお題に紐づくすべての選択肢の正解フラグを一度 False にリセット
+            topic.options.all().update(is_correct=False)
+            
+            # 2. 選ばれた正解の選択肢だけを True にする
+            winning_option = get_object_or_404(Option, optid=winning_opt_id, topicid=topic)
+            winning_option.is_correct = True
+            winning_option.save()
+
+            # ─── 💰 【自動配当（ポイント返却）ロジック】 ───
+            
+            # A. お題全体の総プールポイントを計算
+            total_pool = 0
+            for opt in topic.options.all():
+                total_pool += sum(b.betpoint for b in opt.bet_set.all())
+
+            # B. 正解の選択肢に賭けられた総ポイントを計算
+            winning_pool = sum(b.betpoint for b in winning_option.bet_set.all())
+
+            # C. 正解者にポイントを分配
+            if total_pool > 0 and winning_pool > 0:
+                # 正解の選択肢へのすべての賭け（Bet）データを取得
+                winning_bets = winning_option.bet_set.all()
+                
+                for bet in winning_bets:
+                    # プレイヤーごとの配当を計算（傾斜配当：自分の賭け金 × オッズ）
+                    # 小数点以下でポイントがブレないよう、四捨五入（round）して整数にします
+                    payout = round((total_pool / winning_pool) * bet.betpoint)
+                    
+                    if payout > 0:
+                        # 賭けたユーザーのプロフィールを取得してポイントを加算
+                        user_profile, created = AccountProfile.objects.get_or_create(
+                            uid=bet.uid,
+                            defaults={'name': bet.uid.username, 'currentpoint': 1000}
+                        )
+                        user_profile.currentpoint += payout
+                        user_profile.save()
+            
+            # ─── 💰 【配当処理ここまで】 ───
+
+            # 3. お題のステータスを「クローズ（終了）」にする
+            topic.status = 'closed'
+            topic.save()
+            
+            messages.success(request, f'お題「{topic.topictitle}」の結果を【{winning_option.text}】に確定し、正解者へポイントを配当しました！')
+            
+    return redirect('bookmaker:topic_list')
