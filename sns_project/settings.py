@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'sns_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db_test_xyz.sqlite3',  # ←存在しない名前にあえて変える
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
