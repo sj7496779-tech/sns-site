@@ -81,8 +81,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sns_project.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+import os
+import dj_database_url
 
 DATABASES = {
     'default': {
@@ -94,6 +94,11 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+# Render（本番環境）のときは、RenderのデータベースURLで上書きする設定
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+
 
 
 # Password validation
