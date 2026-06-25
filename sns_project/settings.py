@@ -83,7 +83,8 @@ WSGI_APPLICATION = 'sns_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'data' を間に挟むことで、永続ディスクの中に保存されます
+        'NAME': BASE_DIR / 'data' / 'db.sqlite3', 
     }
 }
 
