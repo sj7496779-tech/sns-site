@@ -80,33 +80,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sns_project.wsgi.application'
 
-
-import os
-import dj_database_url
-
-# 元の設定は消去するか、以下のように完全に書き換えます
-if 'DATABASE_URL' in os.environ:
-    # URLの先頭が postgresql:// になっている場合のバグを防ぐ処理を追加
-    db_url = os.environ.get('DATABASE_URL')
-    if db_url and db_url.startswith('postgresql://'):
-        db_url = db_url.replace('postgresql://', 'postgres://', 1)
-        
-    DATABASES = {
-        'default': dj_database_url.parse(db_url, conn_max_age=600, ssl_require=True)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    # 開発環境（手元のPC用）の設定
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'bookmaker_db',
-            'USER': 'postgres',
-            'PASSWORD': 'password',
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
-    }
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -158,3 +137,6 @@ LOGIN_URL = 'login'              # ログインしていない時に強制移動
 import os
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+JSON_AS_ASCII = False
