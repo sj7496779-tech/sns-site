@@ -80,6 +80,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sns_project.wsgi.application'
 
+import os
 
 if 'RENDER' in os.environ:
     DB_PATH = BASE_DIR / 'data' / 'db.sqlite3'
