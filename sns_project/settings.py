@@ -80,11 +80,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sns_project.wsgi.application'
 
+
+if 'RENDER' in os.environ:
+    DB_PATH = BASE_DIR / 'data' / 'db.sqlite3'
+else:
+    DB_PATH = BASE_DIR / 'db.sqlite3'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        # 'data' を間に挟むことで、永続ディスクの中に保存されます
-        'NAME': BASE_DIR / 'data' / 'db.sqlite3', 
+        'NAME': DB_PATH,
     }
 }
 
