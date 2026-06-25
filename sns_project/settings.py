@@ -84,21 +84,28 @@ WSGI_APPLICATION = 'sns_project.wsgi.application'
 import os
 import dj_database_url
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bookmaker_db',
-        'USER': 'postgres',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-
-# Render（本番環境）のときは、RenderのデータベースURLで上書きする設定
+# 元の設定は消去するか、以下のように完全に書き換えます
 if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
-
+    # URLの先頭が postgresql:// になっている場合のバグを防ぐ処理を追加
+    db_url = os.environ.get('DATABASE_URL')
+    if db_url and db_url.startswith('postgresql://'):
+        db_url = db_url.replace('postgresql://', 'postgres://', 1)
+        
+    DATABASES = {
+        'default': dj_database_url.parse(db_url, conn_max_age=600, ssl_require=True)
+    }
+else:
+    # 開発環境（手元のPC用）の設定
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'bookmaker_db',
+            'USER': 'postgres',
+            'PASSWORD': 'password',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 
 # Password validation
