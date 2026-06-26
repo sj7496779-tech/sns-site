@@ -64,8 +64,7 @@ ROOT_URLCONF = 'sns_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # ↓↓↓ ここを空っぽ [] から以下のように書き換えます ↓↓↓
-        'DIRS': [BASE_DIR / 'templates'], 
+        'DIRS': [BASE_DIR / 'sns_project' / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
