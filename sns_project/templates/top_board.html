@@ -3,9 +3,8 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>トップ掲示板 - VScodeSNS</title>
+    <title>トップ掲示板</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/board.css' %}">
 </head>
 <body class="board-body">
 
@@ -26,6 +25,24 @@
         </div>
     </header>
 
+    <div class="board-container search-box-container">
+        <form method="GET" action="{% url 'top_page' %}" class="search-form">
+            <div class="search-input-wrap">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="つぶやき、ユーザー、お題で検索" class="search-input">
+                {% if search_query %}
+                    <a href="{% url 'top_page' %}" class="search-clear-btn">&times;</a>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary bg-kpmg-blue search-submit-btn">検索</button>
+        </form>
+        
+        {% if search_query %}
+            <p class="search-result-notify">
+                🔍 「<strong>{{ search_query }}</strong>」の検索結果: <strong>{{ chats|length }}</strong> 件
+            </p>
+        {% endif %}
+    </div>
+
     <div id="chatModal" class="modal-overlay">
         <div class="modal-content card chat-modal-size">
             <div class="modal-header">
@@ -33,7 +50,7 @@
                 <button type="button" id="closeChatModalBtn" class="modal-close-x">&times;</button>
             </div>
             
-            <form method="POST" action="{% url 'top_page' %}">
+            <form method="POST" action="{% url 'create_chat' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <textarea name="chat_text" placeholder="今なにしてる？" required rows="4" class="chat-textarea"></textarea>
