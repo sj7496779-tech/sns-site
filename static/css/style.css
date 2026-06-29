@@ -193,7 +193,7 @@ textarea { resize: none; }
 .betting-status-details summary::-webkit-details-marker { display: none; }
 .betting-status-details summary { list-style: none; }
 .toggle-icon { font-size: 11px; color: #94a3b8; transition: transform 0.2s; }
-.betting-status-details[open] .toggle-icon { transform: rotate(180deg); color: #7213EA; }
+.betting-status-details[open] .toggle-icon { transform: rotate(90deg); color: #7213EA; }
 .betting-status-content { padding: 0 20px 20px 20px; background: #fff; }
 
 .betting-title-flex {
