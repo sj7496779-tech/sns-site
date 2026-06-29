@@ -750,3 +750,51 @@ textarea { resize: none; }
 .search-result-notify strong {
     color: #00338D !important;
 }
+
+
+.chat-message-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+}
+
+.chat-message-text .mention-tag {
+    display: inline-block;
+    margin: 0 2px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+/* メンションレコメンドの枠 */
+.mention-suggestion-box {
+    position: absolute;
+    bottom: 100%; /* 入力欄の上にフワッと出す（下に出したい場合は top: 100%） */
+    left: 0;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-height: 150px;
+    overflow-y: auto;
+    width: 200px;
+}
+
+/* ユーザー候補の1行 */
+.mention-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #334155;
+    transition: background-color 0.2s;
+}
+
+/* マウスを乗せたとき */
+.mention-item:hover {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 500;
+}

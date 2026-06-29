@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -5,6 +6,7 @@ from django.utils import timezone
 from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 
 # ==========================================
 # 1. お題の一覧画面 ＆ 新規投稿処理
@@ -312,3 +314,9 @@ def set_topic_result(request, topic_id):
             messages.success(request, f'お題「{topic.topictitle}」の結果を【{winning_option.text}】に確定し、正解者へポイントを配当しました！')
             
     return redirect('bookmaker:topic_list')
+
+
+@login_required
+def get_users_json(request):
+    users = User.objects.exclude(id=request.user.id).values_list('username', flat=True)
+    return JsonResponse({'users': list(users)})
