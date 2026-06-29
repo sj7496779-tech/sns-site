@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction
 from django.db.models import Q
+from django.contrib.auth.models import User
 
 # ==========================================
 # 1. お題の一覧画面 ＆ 新規投稿処理（選択肢最大4つ＆ランキング対応）
@@ -128,6 +129,25 @@ def topic_detail(request, topic_id):
         
         profile.save()
         bet.save()
+
+        # ─── 🚨 【追加】高額ベット時の掲示板自動投稿ロジック ───
+        HIGH_BET_THRESHOLD = 1000  # 💡 何ポイント以上を高額とするか設定（例: 500pt）
+        
+        if bet_point >= HIGH_BET_THRESHOLD:
+            try:
+                system_user = User.objects.get(username='公式ディーラー')
+            except User.DoesNotExist:
+                # 万が一作っていなかった場合は、とりあえず賭けた本人にしておく（エラー防止）
+                system_user = request.user
+
+            auto_message = f"【高額ベット！】{request.user.username}さんが「{option.text}」に {bet_point}ポイント 賭けました！"
+            
+            # Chatモデルを使って、システムによる自動投稿として保存
+            Chat.objects.create(
+                uid=system_user,      
+                text=auto_message,         # 自動つぶやき本文
+                shared_topic=topic         # 💡 しっかりお題を引用紐付け！
+            )
 
         messages.success(request, f'「{option.text}」に {bet_point}pt 賭けました！')
         return redirect('bookmaker:topic_list')
