@@ -678,3 +678,75 @@ textarea { resize: none; }
     display: inline-flex !important;
     align-items: center !important;
 }
+
+/* ==========================================================================
+   10. 🔍 検索機能専用スタイル（1行固定版に修正）
+   ========================================================================== */
+
+/* 検索窓全体のコンテナ */
+.search-box-container {
+    margin-bottom: 24px;
+    padding: 0;
+}
+
+/* フォームを1行に絶対固定する設定 */
+.search-form {
+    display: flex !important;
+    flex-direction: row !important; /* 絶対に縦並びにさせない */
+    gap: 10px !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+/* 入力欄のラッパー */
+.search-input-wrap {
+    position: relative !important;
+    flex: 1 !important; /* 検索ボタン以外の横幅を限界まで広げる */
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* 検索入力欄（width: 100% の競合をこれで上書き解決） */
+.search-input {
+    width: 100% !important; /* ラッパーの中だけで100% */
+    height: 42px !important;
+    padding: 0 40px 0 14px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 検索実行ボタン（勝手に縮んだり2行目に行かないように固定） */
+.search-submit-btn {
+    height: 42px !important;
+    white-space: nowrap !important; /* 文字の折り返しを絶対禁止 */
+    flex-shrink: 0 !important;     /* ボタンが潰れるのを絶対禁止 */
+    padding: 0 24px !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+}
+
+/* 入力欄の中にある「×」クリアボタン */
+.search-clear-btn {
+    position: absolute !important;
+    right: 12px !important;
+    font-size: 20px !important;
+    color: #94a3b8 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    line-height: 1 !important;
+    z-index: 5 !important;
+}
+.search-clear-btn:hover {
+    color: #475569 !important;
+}
+
+/* 検索結果の件数表示テキスト */
+.search-result-notify {
+    margin-top: 10px !important;
+    margin-bottom: 0 !important;
+    font-size: 13px !important;
+    color: #64748b !important;
+}
+.search-result-notify strong {
+    color: #00338D !important;
+}

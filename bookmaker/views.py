@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction
+from django.db.models import Q
 
 # ==========================================
 # 1. お題の一覧画面 ＆ 新規投稿処理（選択肢最大4つ＆ランキング対応）
@@ -139,11 +140,10 @@ def topic_detail(request, topic_id):
 
 
 # ==========================================
-# 3. 掲示板（メインチャット）画面
+# 3-A. 掲示板：新しく投稿する処理（POST専用）
 # ==========================================
 @login_required
-def top_board(request):
-    # ポスト（投稿）ボタンが押された時の処理
+def create_chat(request):
     if request.method == 'POST':
         chat_text = request.POST.get('chat_text')
         topic_id = request.POST.get('topic_id')  # 💡画面から送られてきた「引用お題のID」を取得
@@ -164,11 +164,45 @@ def top_board(request):
 
             chat.save()
             
-        return redirect('top_page')  # 投稿後はページをリロード
+    return redirect('top_page')  # 投稿後は掲示板トップページへリロード
+
+
+# ==========================================
+# 3-B. 掲示板：画面を表示する処理（表示 ＆ %検索% 専用）
+# ==========================================
+@login_required
+def top_board(request):
+    search_query = request.GET.get('q', '').strip()  # 前後の余計な空白を消す
 
     # データベースからすべてのチャットを新しい順（timeの逆順）に取得
-    # 💡「.select_related('shared_topic')」を挟むことで、お題データを効率よく一括取得（SQL発行数を削減）します
-    chats = Chat.objects.all().select_related('shared_topic').order_by('-time')
+    # 💡「.select_related('shared_topic', 'uid')」でユーザーとお題データを一括取得して高速化
+    chats_queryset = Chat.objects.all().select_related('shared_topic', 'uid').order_by('-time')
+
+    # 🔍 検索ワードがある場合、Python側で「含まれているか」をチェック
+    if search_query:
+        query_lower = search_query.lower()
+        filtered_chats = []
+        for chat in chats_queryset:
+            # 1. 本文に含まれるか
+            in_text = query_lower in chat.text.lower()
+            
+            # 2. ユーザー名に含まれるか
+            in_username = query_lower in str(chat.uid.username).lower()
+            
+            # 3. 引用お題のタイトルに含まれるか（お題がある場合のみ）
+            in_topic = False
+            if chat.shared_topic and chat.shared_topic.topictitle:
+                in_topic = query_lower in chat.shared_topic.topictitle.lower()
+            
+            # いずれかに「含まれていれば」リストに残す
+            if in_text or in_username or in_topic:
+                filtered_chats.append(chat)
+        
+        # 絞り込んだ結果をテンプレートに渡す
+        chats = filtered_chats
+    else:
+        # 検索キーワードがない（通常アクセス）の時は、全件をそのまま使う
+        chats = chats_queryset
     
     # 💡投稿フォームのドロップダウンに表示するため、現在受付中のお題リストを取得
     # 期限（deadtime）が現在時刻より後、かつステータスが 'closed' 以外のお題
@@ -177,10 +211,11 @@ def top_board(request):
         deadtime__gt=timezone.now()
     ).order_by('-deadtime')
 
-    # テンプレートに chats と active_topics の両方を渡す
+    # テンプレートに chats と active_topics と search_query を渡す
     return render(request, 'top_board.html', {
         'chats': chats, 
-        'active_topics': active_topics
+        'active_topics': active_topics,
+        'search_query': search_query,
     })
 
 
