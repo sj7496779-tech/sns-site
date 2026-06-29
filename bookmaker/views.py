@@ -124,7 +124,7 @@ def topic_detail(request, topic_id):
             except User.DoesNotExist:
                 system_user = request.user
 
-            auto_message = f"【高額ベット！】{request.user.username}さんが「{option.text}」に {bet_point}ポイント 賭けました！"
+            auto_message = f"【高額ベット】{request.user.username}さんが「{option.text}」に {bet_point}ポイント 賭けました！"
             
             Chat.objects.create(
                 uid=system_user,      
