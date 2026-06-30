@@ -137,6 +137,8 @@ h1, h2, h3, strong {
 .btn-primary   { background: #005EB8; color: #ffffff; }
 .btn-secondary { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; }
 .btn-secondary:hover { background: #f1f5f9; color: #0f172a; }
+.btn-danger { background: #dc3545; color: #ffffff; }
+.btn-danger:hover { background: #b02a37; }
 .small-btn { padding: 6px 12px; font-size: 12px; }
 .full-width { width: 100%; }
 
@@ -184,6 +186,77 @@ input:focus, textarea:focus {
     box-shadow: 0 0 0 3px rgba(0, 51, 141, 0.1); 
 }
 textarea { resize: none; }
+
+.form-upload-file {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.chat-image-wrap {
+    margin-top: 12px;
+}
+
+.chat-image {
+    max-width: 100%;
+    border-radius: 12px;
+    display: block;
+    margin-top: 10px;
+}
+
+.chat-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.chat-header .topic-detail { margin: 0; flex: 1; }
+.delete-form { flex-shrink: 0; }
+
+.replies-list { margin-top: 12px; border-left: 3px solid #e6eef9; padding-left: 12px; }
+.reply-item { margin-bottom: 8px; padding: 8px; background: #fbfdff; border-radius: 8px; border: 1px solid #f0f0f0; }
+.reply-user { font-weight: 700; margin-right: 8px; color: #475569; }
+.reply-time { font-size: 12px; color: #94a3b8; }
+.reply-text { margin: 6px 0 0 0; color: #1e293b; }
+
+.reply-form-wrap { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+.reply-form-wrap form { display: flex; gap: 8px; width: 100%; }
+.reply-input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; font-size: 14px; }
+.reply-input:focus { outline: none; border-color: #00338D; background: #ffffff; box-shadow: 0 0 0 3px rgba(0, 51, 141, 0.1); }
+
+.reply-thread summary,
+.reply-children-details summary,
+.reply-form-details summary {
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.reply-thread summary {
+    font-weight: normal;
+}
+
+.reply-children {
+    margin-top: 12px;
+    margin-left: 16px;
+    border-left: 2px dashed #dbeafe;
+    padding-left: 12px;
+}
+
+.reply-level-0 {
+    margin-top: 12px;
+}
+
+.reply-level-1 {
+    margin-top: 10px;
+    border-left: 2px solid #e2e8f0;
+    padding-left: 10px;
+    background: #f8fbff;
+}
+
+.reply-level-2 {
+    margin-top: 10px;
+    border-left: 2px solid #cfe0ff;
+    padding-left: 10px;
+    background: #f5f8ff;
+}
 
 
 /* ==========================================
