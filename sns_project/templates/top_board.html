@@ -50,14 +50,15 @@
                 <button type="button" id="closeChatModalBtn" class="modal-close-x">&times;</button>
             </div>
             
-            <form method="POST" action="{% url 'create_chat' %}">
+            <form method="POST" action="{% url 'create_chat' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="form-group">
-                    <textarea name="chat_text" id="chat_text" placeholder="メッセージを入力..." required rows="4" class="chat-textarea"></textarea>
+                    <textarea name="chat_text" placeholder="今なにしてる？" required rows="4" class="chat-textarea"></textarea>
                 </div>
 
-                <div style="position: relative;">
-                    <div id="mention-list" class="mention-suggestion-box" style="display: none;"></div>
+                <div class="form-group margin-top-md">
+                    <label class="form-label-bold">🖼️ 画像を添付する（任意）</label>
+                    <input type="file" name="chat_image" accept="image/*" class="form-upload-file">
                 </div>
                 
                 <div class="form-group margin-top-md">
@@ -80,34 +81,10 @@
     <div class="topic-grid board-container">
         {% for chat in chats %}
             <div class="card topic-card border-kpmg-blue margin-bottom-md">
-                <div class="chat-content">
-                    <p class="topic-detail chat-text-layout">
-                        <strong class="chat-user-name">{{ chat.uid.username }}</strong>:
-                        <span class="chat-message-text">{{ chat.text|safe }}</span>
-                    </p>
-
-                    {% if chat.shared_topic %}
-                    <div class="shared-topic-card">
-                        <div class="shared-topic-meta">
-                            <span class="quote-badge">引用お題 🎲</span>
-                            <span class="quote-deadline">期限: {{ chat.shared_topic.deadtime|date:"m-d H:i" }}</span>
-                        </div>
-                        <strong class="shared-topic-title">{{ chat.shared_topic.topictitle }}</strong>
-                        <p class="shared-topic-description">
-                            {{ chat.shared_topic.topicdetailtext|truncatechars:80 }}
-                        </p>
-                        <div class="text-right">
-                            <a href="{% url 'bookmaker:topic_list' %}" class="btn btn-primary bg-kpmg-blue quote-link-btn">
-                                このお題に賭ける ➔
-                            </a>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-                
+                <!-- Meta (likes and time) -->
                 <div class="topic-meta chat-meta-layout">
                     <span class="meta-date">🕒 {{ chat.time|date:"Y-m-d H:i" }}</span>
-                    
+
                     <div class="reaction-wrapper">
                         <form method="POST" action="{% url 'bookmaker:toggle_reaction' chat.chatid %}" class="inline-form">
                             {% csrf_token %}
@@ -128,6 +105,117 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="chat-content">
+                    <div class="chat-header">
+                        <p class="topic-detail chat-text-layout">
+                            <strong class="chat-user-name">{{ chat.uid.username }}</strong>: {{ chat.text }}
+                        </p>
+                        {% if chat.uid == user %}
+                        <form method="POST" action="{% url 'delete_chat' chat.chatid %}" class="delete-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger small-btn" onclick="return confirm('この投稿を本当に削除しますか？');">
+                                削除
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+
+                    {% if chat.image %}
+                    <div class="chat-image-wrap">
+                        <img src="{{ chat.image.url }}" alt="投稿画像" class="chat-image">
+                    </div>
+                    {% endif %}
+
+                    {% if chat.shared_topic %}
+                    <div class="shared-topic-card">
+                        <div class="shared-topic-meta">
+                            <span class="quote-badge">引用お題 🎲</span>
+                            <span class="quote-deadline">期限: {{ chat.shared_topic.deadtime|date:"m-d H:i" }}</span>
+                        </div>
+                        <strong class="shared-topic-title">{{ chat.shared_topic.topictitle }}</strong>
+                        <p class="shared-topic-description">
+                            {{ chat.shared_topic.topicdetailtext|truncatechars:80 }}
+                        </p>
+                        <div class="text-right">
+                            <a href="{% url 'bookmaker:topic_list' %}" class="btn btn-primary bg-kpmg-blue quote-link-btn">
+                                このお題に賭ける ➔
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Replies list -->
+                    <div class="replies-list">
+                        {% if chat.reply_count >= 3 %}
+                        <details class="reply-thread" open>
+                            <summary>返信 {{ chat.reply_count }} 件</summary>
+                            {% for reply in chat.top_replies %}
+                            <div class="reply-item reply-level-0">
+                                <div class="reply-meta">
+                                    <strong class="reply-user">👤 {{ reply.uid.username }}</strong>
+                                    <span class="reply-time">{{ reply.time|date:"Y-m-d H:i" }}</span>
+                                </div>
+                                <p class="reply-text">{{ reply.text }}</p>
+
+                                {% if reply.child_replies.all %}
+                                <details class="reply-children-details" {% if reply.child_replies.count <= 3 %}open{% endif %}>
+                                    <summary>返信 {{ reply.child_replies.count }} 件</summary>
+                                    <div class="reply-children">
+                                        {% for child in reply.child_replies.all %}
+                                        <div class="reply-item reply-level-1">
+                                            <div class="reply-meta">
+                                                <strong class="reply-user">↳ {{ child.uid.username }}</strong>
+                                                <span class="reply-time">{{ child.time|date:"Y-m-d H:i" }}</span>
+                                            </div>
+                                            <p class="reply-text">{{ child.text }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </details>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </details>
+                        {% elif chat.reply_count > 0 %}
+                            {% for reply in chat.top_replies %}
+                            <div class="reply-item reply-level-0">
+                                <div class="reply-meta">
+                                    <strong class="reply-user">👤 {{ reply.uid.username }}</strong>
+                                    <span class="reply-time">{{ reply.time|date:"Y-m-d H:i" }}</span>
+                                </div>
+                                <p class="reply-text">{{ reply.text }}</p>
+
+                                {% if reply.child_replies.all %}
+                                <details class="reply-children-details" {% if reply.child_replies.count <= 3 %}open{% endif %}>
+                                    <summary>返信 {{ reply.child_replies.count }} 件</summary>
+                                    <div class="reply-children">
+                                        {% for child in reply.child_replies.all %}
+                                        <div class="reply-item reply-level-1">
+                                            <div class="reply-meta">
+                                                <strong class="reply-user">↳ {{ child.uid.username }}</strong>
+                                                <span class="reply-time">{{ child.time|date:"Y-m-d H:i" }}</span>
+                                            </div>
+                                            <p class="reply-text">{{ child.text }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </details>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Reply form -->
+                    <div class="reply-form-wrap">
+                        <form method="POST" action="{% url 'bookmaker:create_reply' chat.chatid %}">
+                            {% csrf_token %}
+                            <input type="text" name="reply_text" placeholder="返信を書く..." class="reply-input" required>
+                            <button type="submit" class="btn btn-primary small-btn">返信</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         {% empty %}
             <p class="empty-text timeline-empty-text">
@@ -139,10 +227,6 @@
 </body>
 
 <script>
-    function renderMentionTags(text) {
-        return text.replace(/@([\w\u3040-\u30ff\u4e00-\u9fff]+)/g, '<span class="mention-tag">@$1</span>');
-    }
-
     const chatModal = document.getElementById('chatModal');
     const openChatBtn = document.getElementById('openChatModalBtn');
     const closeChatBtn = document.getElementById('closeChatModalBtn');
@@ -151,78 +235,6 @@
     closeChatBtn.addEventListener('click', () => { chatModal.classList.remove('is-active'); });
     window.addEventListener('click', (e) => {
         if (e.target === chatModal) { chatModal.classList.remove('is-active'); }
-    });
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.chat-message-text').forEach(el => {
-            el.innerHTML = renderMentionTags(el.textContent || '');
-        });
-
-        const textarea = document.getElementById('chat_text');
-        const mentionList = document.getElementById('mention-list');
-        let allUsers = [];
-
-        if (!textarea || !mentionList) return;
-
-        fetch('/api/users/')
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to load users');
-                return res.json();
-            })
-            .then(data => {
-                allUsers = Array.isArray(data.users) ? data.users : [];
-            })
-            .catch(() => {
-                allUsers = [];
-            });
-
-        textarea.addEventListener('input', () => {
-            const text = textarea.value;
-            const cursorPosition = textarea.selectionStart ?? text.length;
-            const textBeforeCursor = text.slice(0, cursorPosition);
-            const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
-
-            if (mentionMatch) {
-                const query = mentionMatch[1].toLowerCase();
-                const filtered = allUsers.filter(user => user.toLowerCase().includes(query));
-
-                if (filtered.length > 0) {
-                    mentionList.innerHTML = filtered.map(user => 
-                        `<div class="mention-item" data-username="${user}">@${user}</div>`
-                    ).join('');
-                    mentionList.style.display = 'block';
-                } else {
-                    mentionList.style.display = 'none';
-                }
-            } else {
-                mentionList.style.display = 'none';
-            }
-        });
-
-        mentionList.addEventListener('click', (e) => {
-            const item = e.target.closest('.mention-item');
-            if (!item) return;
-
-            const username = item.getAttribute('data-username');
-            const text = textarea.value;
-            const cursorPosition = textarea.selectionStart ?? text.length;
-            const textBeforeCursor = text.slice(0, cursorPosition);
-            const newTextBefore = textBeforeCursor.replace(/@([^\s@]*)$/, `@${username} `);
-            const textAfterCursor = text.slice(cursorPosition);
-
-            textarea.value = newTextBefore + textAfterCursor;
-            const newCursor = newTextBefore.length;
-            textarea.focus();
-            textarea.setSelectionRange(newCursor, newCursor);
-            mentionList.style.display = 'none';
-        });
-
-        document.addEventListener('click', (e) => {
-            if (e.target !== textarea && e.target !== mentionList) {
-                mentionList.style.display = 'none';
-            }
-        });
     });
 </script>
 </html>
