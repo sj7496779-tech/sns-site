@@ -9,8 +9,9 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('', bookmaker_views.top_board, name='top_page'),
+    path('api/users/', bookmaker_views.get_users_json, name='get_users_json'),
     path('bookmaker/', include('bookmaker.urls')),
-    
+
     # 💡「views」ではなく「bookmaker_views」に修正しました！
     path('create-chat/', bookmaker_views.create_chat, name='create_chat'),
 ]
