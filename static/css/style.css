@@ -77,23 +77,40 @@ h1, h2, h3, strong {
 }
 
 /* 📦 共通カードコンポーネント */
+/* 📦 共通カードコンポーネント（下線アクセント） */
 .card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
+    border-bottom: 4px solid #005EB8; /* KPMG Medium Blue アクセント */
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    transition: box-shadow 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
 }
 
+/* 📌 お題専用カード（左線なし・外枠フォーカス） */
 .topic-card {
-    border-left: 4px solid #005EB8; /* KPMG Medium Blue アクセント */
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0; /* 初期状態はシンプルな薄い枠線 */
+    border-radius: 12px;       /* .cardと統一感を持たせるため12pxに調整 */
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.topic-card:hover {
+    transform: translateY(-2px);
+    /* 👇 ホバーした時だけ、外枠が KPMG Blue に綺麗に変化します */
+    border-color: #005EB8; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
 /* 🖱️ ボタンパーツ */
 .btn {
     color: #ffffff;
