@@ -130,6 +130,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # sns_project/settings.py の一番下に追記
 
 # ログイン・ログアウトした後のリダイレクト先
@@ -144,3 +147,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 JSON_AS_ASCII = False
+
+# 適切な自動主キーのデフォルト（警告回避）
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

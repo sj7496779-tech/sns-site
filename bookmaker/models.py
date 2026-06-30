@@ -118,6 +118,7 @@ class Chat(models.Model):
     chatid = models.AutoField(primary_key=True) # 主キー（自動連番）
     uid = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chats') 
     text = models.TextField() # 本文
+    image = models.ImageField(upload_to='chat_images/', null=True, blank=True) # 画像添付
     time = models.DateTimeField(auto_now_add=True) # 投稿日時を自動記録
 
     # 💡 ★ここに新しく列を追加！
@@ -147,4 +148,17 @@ class Reaction(models.Model):
 
     def __str__(self):
         return f"{self.uid.username} reacted to Chat {self.chatid.chatid}"
+    
+
+class Reply(models.Model):
+    replyid = models.AutoField(primary_key=True)
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='replies')
+    uid = models.ForeignKey(User, on_delete=models.CASCADE, related_name='replies')
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='child_replies')
+    text = models.TextField()
+    time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        parent_info = f" reply to {self.parent.replyid}" if self.parent else ''
+        return f"{self.uid.username} -> Reply to Chat {self.chat.chatid}{parent_info}: {self.text[:12]}"
     
