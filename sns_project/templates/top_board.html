@@ -84,32 +84,7 @@
 
     <div class="topic-grid board-container">
         {% for chat in chats %}
-            <div class="card topic-card border-kpmg-blue margin-bottom-md">
-                <!-- Meta (likes and time) -->
-                <div class="topic-meta chat-meta-layout">
-                    <span class="meta-date">🕒 {{ chat.time|date:"Y-m-d H:i" }}</span>
-
-                    <div class="reaction-wrapper">
-                        <form method="POST" action="{% url 'bookmaker:toggle_reaction' chat.chatid %}" class="inline-form">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-secondary small-btn reaction-trigger-btn">
-                                👍 いいね！ ({{ chat.reactions.count }})
-                            </button>
-                        </form>
-
-                        <div class="reaction-popover">
-                            <div class="popover-title">👍 いいねした人</div>
-                            <ul class="popover-user-list">
-                                {% for reaction in chat.reactions.all %}
-                                    <li>👤 {{ reaction.uid.username }}</li>
-                                {% empty %}
-                                    <li class="popover-empty">まだいいねはありません</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
+            <div id="chat-{{ chat.chatid }}"class="card topic-card border-kpmg-blue margin-bottom-md">
                 <div class="chat-content">
                     <div class="chat-header">
                         <p class="topic-detail chat-text-layout">
