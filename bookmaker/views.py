@@ -2,32 +2,25 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction
-from django.db.models import Q
+from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction, Reply
+from django.db.models import Q, Prefetch
 from django.contrib.auth.models import User
 
 # ==========================================
-# 1. お題の一覧画面 ＆ 新規投稿処理（選択肢最大4つ＆ランキング対応）
+# 1. お題の一覧画面 ＆ 新規投稿処理
 # ==========================================
 def topic_list(request):
     # 【投稿処理】もし画面から「お題の投稿」フォームが送信されてきたら
     if request.method == 'POST' and 'topictitle' in request.POST:
-        if not request.user.is_authenticated:
-            messages.error(request, 'お題を投稿するにはログインが必要です。')
-            return redirect('bookmaker:topic_list')
             
         topictitle = request.POST.get('topictitle')
         topicdetailtext = request.POST.get('topicdetailtext')
-        
-        # 画面から選択肢1〜4のテキストをすべて取得（3と4を追加）
         option1_text = request.POST.get('option1')
         option2_text = request.POST.get('option2')
         option3_text = request.POST.get('option3')
         option4_text = request.POST.get('option4')
-        
         deadtime_raw = request.POST.get('deadtime')
 
-        # お題DB（Topic）に保存
         topic = Topic.objects.create(
             topictitle=topictitle,
             topicdetailtext=topicdetailtext,
@@ -36,15 +29,12 @@ def topic_list(request):
             deadtime=deadtime_raw
         )
 
-        # 必須の選択肢1と2を保存
         Option.objects.create(topicid=topic, text=option1_text)
         Option.objects.create(topicid=topic, text=option2_text)
 
-        # 💡 選択肢3：文字が入っていれば（空文字でなければ）保存
         if option3_text and option3_text.strip():
             Option.objects.create(topicid=topic, text=option3_text.strip())
 
-        # 💡 選択肢4：文字が入っていれば（空文字でなければ）保存
         if option4_text and option4_text.strip():
             Option.objects.create(topicid=topic, text=option4_text.strip())
 
@@ -58,17 +48,12 @@ def topic_list(request):
     profile = None
     my_created_topics = None
     
-    # 🏆 持ちポイントの高い順に全ユーザーのプロファイルを上位10名取得
+    # 持ちポイントの高い順に全ユーザーのプロファイルを上位10名取得
     ranking_list = AccountProfile.objects.all().order_by('-currentpoint')[:10]
     
     if request.user.is_authenticated:
-        # 自分が賭けている情報を、お題データまでまとめて取得
         my_bets = Bet.objects.filter(uid=request.user).select_related('optid__topicid')
-        
-        # 自分が作成したお題を「uid_id」を用いて確実に取得
         my_created_topics = Topic.objects.filter(uid_id=request.user.id).prefetch_related('options').order_by('-topicid')
-        
-        # 現在の持ちポイントを表示できるようにプロフィールも取得
         profile, created = AccountProfile.objects.get_or_create(
             uid=request.user, 
             defaults={'name': request.user.username, 'currentpoint': 1000}
@@ -80,8 +65,8 @@ def topic_list(request):
         'my_bets': my_bets,
         'profile': profile,
         'my_created_topics': my_created_topics,
-        'ranking_list': ranking_list,  # 👈 テンプレート側でランキング表示可能に
-        'now': timezone.now(),  # 期限切れ判定用に現在のシステム時刻を渡す
+        'ranking_list': ranking_list, 
+        'now': timezone.now(), 
     }
     return render(request, 'bookmaker/index.html', context)
 
@@ -97,7 +82,7 @@ def topic_detail(request, topic_id):
     # ログイン中のユーザーのプロフィールを取得
     profile, created = AccountProfile.objects.get_or_create(
         uid=request.user, 
-        defaults={'name': request.user.username, 'currentpoint': 1000}
+        defaults={'name': request.user.username, 'currentpoint': 3000}
     )
 
     if request.method == 'POST':
@@ -137,16 +122,14 @@ def topic_detail(request, topic_id):
             try:
                 system_user = User.objects.get(username='公式ディーラー')
             except User.DoesNotExist:
-                # 万が一作っていなかった場合は、とりあえず賭けた本人にしておく（エラー防止）
                 system_user = request.user
 
-            auto_message = f"【高額ベット！】{request.user.username}さんが「{option.text}」に {bet_point}ポイント 賭けました！"
+            auto_message = f"【高額ベット】{request.user.username}さんが「{option.text}」に {bet_point}ポイント 賭けました！"
             
-            # Chatモデルを使って、システムによる自動投稿として保存
             Chat.objects.create(
                 uid=system_user,      
-                text=auto_message,         # 自動つぶやき本文
-                shared_topic=topic         # 💡 しっかりお題を引用紐付け！
+                text=auto_message,
+                shared_topic=topic
             )
 
         messages.success(request, f'「{option.text}」に {bet_point}pt 賭けました！')
@@ -171,20 +154,53 @@ def create_chat(request):
         if chat_text:
             # データベースにチャットを保存
             chat = Chat(
-                uid=request.user,  # 現在ログインしているユーザー
+                uid=request.user, 
                 text=chat_text
             )
             
-            # 💡お題の引用指定がある場合、対象のお題をDBから取得して紐付ける
             if topic_id:
                 try:
                     chat.shared_topic = Topic.objects.get(topicid=topic_id)
                 except Topic.DoesNotExist:
-                    pass  # 万が一お題が存在しない場合は紐付けずに進む
+                    pass 
+
+            if request.FILES.get('chat_image'):
+                chat.image = request.FILES['chat_image']
 
             chat.save()
             
-    return redirect('top_page')  # 投稿後は掲示板トップページへリロード
+    return redirect('top_page')
+
+
+# ==========================================
+# 3-A-3. 掲示板：投稿への返信処理
+# ==========================================
+@login_required
+def create_reply(request, chat_id):
+    if request.method == 'POST':
+        text = request.POST.get('reply_text', '').strip()
+        if text:
+            chat = get_object_or_404(Chat, pk=chat_id)
+            Reply.objects.create(uid=request.user, chat=chat, text=text)
+
+    return redirect('top_page')
+
+
+# ==========================================
+# 3-A-2. 掲示板：投稿削除処理
+# ==========================================
+@login_required
+def delete_chat(request, chat_id):
+    if request.method == 'POST':
+        chat = get_object_or_404(Chat, pk=chat_id)
+        if chat.uid != request.user:
+            messages.error(request, 'この投稿は削除できません。')
+            return redirect('top_page')
+
+        chat.delete()
+        messages.success(request, '投稿を削除しました。')
+
+    return redirect('top_page')
 
 
 # ==========================================
@@ -194,9 +210,12 @@ def create_chat(request):
 def top_board(request):
     search_query = request.GET.get('q', '').strip()  # 前後の余計な空白を消す
 
-    # データベースからすべてのチャットを新しい順（timeの逆順）に取得
     # 💡「.select_related('shared_topic', 'uid')」でユーザーとお題データを一括取得して高速化
-    chats_queryset = Chat.objects.all().select_related('shared_topic', 'uid').order_by('-time')
+    replies_prefetch = Prefetch(
+        'replies',
+        queryset=Reply.objects.select_related('uid', 'parent').prefetch_related('child_replies__uid'),
+    )
+    chats_queryset = Chat.objects.all().select_related('shared_topic', 'uid').prefetch_related(replies_prefetch).order_by('-time')
 
     # 🔍 検索ワードがある場合、Python側で「含まれているか」をチェック
     if search_query:
@@ -224,14 +243,19 @@ def top_board(request):
         # 検索キーワードがない（通常アクセス）の時は、全件をそのまま使う
         chats = chats_queryset
     
+    for chat in chats:
+        chat.top_replies = sorted(
+            [reply for reply in chat.replies.all() if reply.parent_id is None],
+            key=lambda r: r.time
+        )
+        chat.reply_count = len(chat.top_replies)
+    
     # 💡投稿フォームのドロップダウンに表示するため、現在受付中のお題リストを取得
-    # 期限（deadtime）が現在時刻より後、かつステータスが 'closed' 以外のお題
     active_topics = Topic.objects.filter(
         status='open', 
         deadtime__gt=timezone.now()
     ).order_by('-deadtime')
 
-    # テンプレートに chats と active_topics と search_query を渡す
     return render(request, 'top_board.html', {
         'chats': chats, 
         'active_topics': active_topics,

@@ -12,5 +12,6 @@ urlpatterns = [
     path('topic/<int:topic_id>/', views.topic_detail, name='topic_detail'),
     # 先ほど追加したチャットリアクション用
     path('chat/<int:chat_id>/reaction/', views.toggle_reaction, name='toggle_reaction'),
+    path('chat/<int:chat_id>/reply/', views.create_reply, name='create_reply'),
     path('topic/<int:topic_id>/result/', views.set_topic_result, name='set_topic_result'),
 ]
