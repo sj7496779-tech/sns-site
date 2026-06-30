@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>トップ掲示板</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="board-body">
+
+    <button type="button" id="openChatModalBtn" class="floating-post-btn">✍️</button>
+
+    <header class="bm-header fixed-header">
+        <div class="header-left">
+            <h1 class="page-main-title">メイン掲示板</h1>
+        </div>
+        <div class="header-right">
+            <a href="{% url 'bookmaker:topic_list' %}" class="btn btn-primary bg-kpmg-blue">
+                ブックメーカーへ行く
+            </a>
+            <form method="POST" action="{% url 'logout' %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary">ログアウト</button>
+            </form>
+        </div>
+    </header>
+
+    <div class="board-container search-box-container">
+        <form method="GET" action="{% url 'top_page' %}" class="search-form">
+            <div class="search-input-wrap">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="つぶやき、ユーザー、お題で検索" class="search-input">
+                {% if search_query %}
+                    <a href="{% url 'top_page' %}" class="search-clear-btn">&times;</a>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary bg-kpmg-blue search-submit-btn">検索</button>
+        </form>
+        
+        {% if search_query %}
+            <p class="search-result-notify">
+                🔍 「<strong>{{ search_query }}</strong>」の検索結果: <strong>{{ chats|length }}</strong> 件
+            </p>
+        {% endif %}
+    </div>
+
+    <div id="chatModal" class="modal-overlay">
+        <div class="modal-content card chat-modal-size">
+            <div class="modal-header">
+                <h3 class="modal-title-text">📝 新しい投稿</h3>
+                <button type="button" id="closeChatModalBtn" class="modal-close-x">&times;</button>
+            </div>
+            
+            <form method="POST" action="{% url 'create_chat' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea name="chat_text" placeholder="今なにしてる？" required rows="4" class="chat-textarea"></textarea>
+                </div>
+
+                <div class="form-group margin-top-md">
+                    <label class="form-label-bold">🖼️ 画像を添付する（任意）</label>
+                    <input type="file" name="chat_image" accept="image/*" class="form-upload-file">
+                </div>
+                
+                <div class="form-group margin-top-md">
+                    <label class="form-label-bold">🎲 ブックメーカーのお題を引用する（任意）</label>
+                    <select name="topic_id" class="form-select-custom">
+                        <option value="">-- お題を選択しない（通常のつぶやき） --</option>
+                        {% for topic in active_topics %}
+                            <option value="{{ topic.topicid }}">🏆 {{ topic.topictitle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-submit-wrap modal-footer-btn">
+                    <button type="submit" class="btn btn-primary bg-kpmg-blue width-full">つぶやく</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="topic-grid board-container">
+        {% for chat in chats %}
+            <div class="card topic-card border-kpmg-blue margin-bottom-md">
+                <!-- Meta (likes and time) -->
+                <div class="topic-meta chat-meta-layout">
+                    <span class="meta-date">🕒 {{ chat.time|date:"Y-m-d H:i" }}</span>
+
+                    <div class="reaction-wrapper">
+                        <form method="POST" action="{% url 'bookmaker:toggle_reaction' chat.chatid %}" class="inline-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary small-btn reaction-trigger-btn">
+                                👍 いいね！ ({{ chat.reactions.count }})
+                            </button>
+                        </form>
+
+                        <div class="reaction-popover">
+                            <div class="popover-title">👍 いいねした人</div>
+                            <ul class="popover-user-list">
+                                {% for reaction in chat.reactions.all %}
+                                    <li>👤 {{ reaction.uid.username }}</li>
+                                {% empty %}
+                                    <li class="popover-empty">まだいいねはありません</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-content">
+                    <div class="chat-header">
+                        <p class="topic-detail chat-text-layout">
+                            <strong class="chat-user-name">{{ chat.uid.username }}</strong>: {{ chat.text }}
+                        </p>
+                        {% if chat.uid == user %}
+                        <form method="POST" action="{% url 'delete_chat' chat.chatid %}" class="delete-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger small-btn" onclick="return confirm('この投稿を本当に削除しますか？');">
+                                削除
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+
+                    {% if chat.image %}
+                    <div class="chat-image-wrap">
+                        <img src="{{ chat.image.url }}" alt="投稿画像" class="chat-image">
+                    </div>
+                    {% endif %}
+
+                    {% if chat.shared_topic %}
+                    <div class="shared-topic-card">
+                        <div class="shared-topic-meta">
+                            <span class="quote-badge">引用お題 🎲</span>
+                            <span class="quote-deadline">期限: {{ chat.shared_topic.deadtime|date:"m-d H:i" }}</span>
+                        </div>
+                        <strong class="shared-topic-title">{{ chat.shared_topic.topictitle }}</strong>
+                        <p class="shared-topic-description">
+                            {{ chat.shared_topic.topicdetailtext|truncatechars:80 }}
+                        </p>
+                        <div class="text-right">
+                            <a href="{% url 'bookmaker:topic_list' %}" class="btn btn-primary bg-kpmg-blue quote-link-btn">
+                                このお題に賭ける ➔
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Replies list -->
+                    <div class="replies-list">
+                        {% if chat.reply_count >= 3 %}
+                        <details class="reply-thread" open>
+                            <summary>返信 {{ chat.reply_count }} 件</summary>
+                            {% for reply in chat.top_replies %}
+                            <div class="reply-item reply-level-0">
+                                <div class="reply-meta">
+                                    <strong class="reply-user">👤 {{ reply.uid.username }}</strong>
+                                    <span class="reply-time">{{ reply.time|date:"Y-m-d H:i" }}</span>
+                                </div>
+                                <p class="reply-text">{{ reply.text }}</p>
+
+                                {% if reply.child_replies.all %}
+                                <details class="reply-children-details" {% if reply.child_replies.count <= 3 %}open{% endif %}>
+                                    <summary>返信 {{ reply.child_replies.count }} 件</summary>
+                                    <div class="reply-children">
+                                        {% for child in reply.child_replies.all %}
+                                        <div class="reply-item reply-level-1">
+                                            <div class="reply-meta">
+                                                <strong class="reply-user">↳ {{ child.uid.username }}</strong>
+                                                <span class="reply-time">{{ child.time|date:"Y-m-d H:i" }}</span>
+                                            </div>
+                                            <p class="reply-text">{{ child.text }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </details>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </details>
+                        {% elif chat.reply_count > 0 %}
+                            {% for reply in chat.top_replies %}
+                            <div class="reply-item reply-level-0">
+                                <div class="reply-meta">
+                                    <strong class="reply-user">👤 {{ reply.uid.username }}</strong>
+                                    <span class="reply-time">{{ reply.time|date:"Y-m-d H:i" }}</span>
+                                </div>
+                                <p class="reply-text">{{ reply.text }}</p>
+
+                                {% if reply.child_replies.all %}
+                                <details class="reply-children-details" {% if reply.child_replies.count <= 3 %}open{% endif %}>
+                                    <summary>返信 {{ reply.child_replies.count }} 件</summary>
+                                    <div class="reply-children">
+                                        {% for child in reply.child_replies.all %}
+                                        <div class="reply-item reply-level-1">
+                                            <div class="reply-meta">
+                                                <strong class="reply-user">↳ {{ child.uid.username }}</strong>
+                                                <span class="reply-time">{{ child.time|date:"Y-m-d H:i" }}</span>
+                                            </div>
+                                            <p class="reply-text">{{ child.text }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </details>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Reply form -->
+                    <div class="reply-form-wrap">
+                        <form method="POST" action="{% url 'bookmaker:create_reply' chat.chatid %}">
+                            {% csrf_token %}
+                            <input type="text" name="reply_text" placeholder="返信を書く..." class="reply-input" required>
+                            <button type="submit" class="btn btn-primary small-btn">返信</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="empty-text timeline-empty-text">
+                まだ投稿がありません。最初のつぶやきをしてみよう！
+            </p>
+        {% endfor %}
+    </div>
+
+</body>
+
+<script>
+    const chatModal = document.getElementById('chatModal');
+    const openChatBtn = document.getElementById('openChatModalBtn');
+    const closeChatBtn = document.getElementById('closeChatModalBtn');
+
+    openChatBtn.addEventListener('click', () => { chatModal.classList.add('is-active'); });
+    closeChatBtn.addEventListener('click', () => { chatModal.classList.remove('is-active'); });
+    window.addEventListener('click', (e) => {
+        if (e.target === chatModal) { chatModal.classList.remove('is-active'); }
+    });
+</script>
+</html>

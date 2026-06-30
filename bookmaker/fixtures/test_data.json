@@ -1,0 +1,76 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "username": "taro_yamada",
+      "password": "pbkdf2_sha256$870000$mock_password_hash",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "username": "hanako_sato",
+      "password": "pbkdf2_sha256$870000$mock_password_hash",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "bookmaker.accountprofile",
+    "pk": 2,
+    "fields": {
+      "name": "山田太郎",
+      "currentpoint": 1500
+    }
+  },
+  {
+    "model": "bookmaker.accountprofile",
+    "pk": 3,
+    "fields": {
+      "name": "佐藤花子",
+      "currentpoint": 700
+    }
+  },
+  {
+    "model": "bookmaker.topic",
+    "pk": 1,
+    "fields": {
+      "topictitle": "次回の社内ゲーム大会、優勝するのはどっち？",
+      "topicdetailtext": "今週末に開催されるスマブラ大会の決勝戦予想です。Aチームのリーダーは前回王者の太郎、Bチームのリーダーはリベンジに燃える次郎です。",
+      "uid": 2,
+      "status": "open",
+      "deadtime": "2026-07-01T12:00:00Z"
+    }
+  },
+  {
+    "model": "bookmaker.option",
+    "pk": 1,
+    "fields": {
+      "topicid": 1,
+      "text": "Aチーム（太郎リーダー）が勝つ"
+    }
+  },
+  {
+    "model": "bookmaker.option",
+    "pk": 2,
+    "fields": {
+      "topicid": 1,
+      "text": "Bチーム（次郎リーダー）が勝つ"
+    }
+  },
+  {
+    "model": "bookmaker.bet",
+    "pk": 1,
+    "fields": {
+      "uid": 3,
+      "optid": 2,
+      "betpoint": 300
+    }
+  }
+]

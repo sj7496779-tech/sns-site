@@ -1,0 +1,825 @@
+/* ==========================================
+   1. システム全体共通スタイル（KPMGカラーベース）
+   ========================================== */
+body {
+    background-color: #f1f5f9; /* 淡いグレー */
+    color: #1e293b; /* ダークグレー */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 800px;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* 掲示板（Timeline）画面時のみ適用される調整 */
+.board-body {
+    padding-top: 90px; /* 固定ヘッダー分の余白を強制確保 */
+    margin: 0 auto;
+}
+
+h1, h2, h3, strong { 
+    color: #0f172a; 
+}
+
+/* 🧱 固定・通常両対応のヘッダー */
+.bm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 15px 20px;
+    background-color: #ffffff;
+    border-bottom: 3px solid #00338D; /* KPMG Deep Navy */
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 掲示板側で固定化 */
+.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 70px;
+    z-index: 1000;
+    margin-bottom: 0;
+    border-radius: 0;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.fixed-header .page-main-title {
+    margin: 0;
+    font-size: 18px;
+    color: #00338D;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+}
+
+.header-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* 📦 共通カードコンポーネント */
+.card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: box-shadow 0.2s ease;
+}
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.topic-card {
+    border-left: 4px solid #005EB8; /* KPMG Medium Blue アクセント */
+}
+
+/* 🖱️ ボタンパーツ */
+.btn {
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn:hover { 
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+.btn:active {
+    transform: translateY(0);
+}
+.btn-primary   { background: #005EB8; color: #ffffff; }
+.btn-secondary { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; }
+.btn-secondary:hover { background: #f1f5f9; color: #0f172a; }
+.btn-danger { background: #dc3545; color: #ffffff; }
+.btn-danger:hover { background: #b02a37; }
+.small-btn { padding: 6px 12px; font-size: 12px; }
+.full-width { width: 100%; }
+
+/* ✍️ 画面右下のフローティング投稿ボタン */
+.floating-post-btn {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #005EB8;
+    color: #fff;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 94, 184, 0.35);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+}
+.floating-post-btn:hover {
+    transform: scale(1.1);
+    background: #00338D;
+}
+
+/* 📝 入力フォーム全般 */
+input[type="text"], input[type="password"], input[type="number"], input[type="datetime-local"], textarea {
+    width: 100%; 
+    background-color: #f8fafc; 
+    border: 1px solid #cbd5e1; 
+    color: #0f172a;
+    padding: 12px; 
+    border-radius: 8px; 
+    box-sizing: border-box; 
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+input:focus, textarea:focus { 
+    outline: none; 
+    border-color: #00338D; 
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 51, 141, 0.1); 
+}
+textarea { resize: none; }
+
+.form-upload-file {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.chat-image-wrap {
+    margin-top: 12px;
+}
+
+.chat-image {
+    max-width: 100%;
+    border-radius: 12px;
+    display: block;
+    margin-top: 10px;
+}
+
+.chat-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.chat-header .topic-detail { margin: 0; flex: 1; }
+.delete-form { flex-shrink: 0; }
+
+.replies-list { margin-top: 12px; border-left: 3px solid #e6eef9; padding-left: 12px; }
+.reply-item { margin-bottom: 8px; padding: 8px; background: #fbfdff; border-radius: 8px; border: 1px solid #f0f0f0; }
+.reply-user { font-weight: 700; margin-right: 8px; color: #475569; }
+.reply-time { font-size: 12px; color: #94a3b8; }
+.reply-text { margin: 6px 0 0 0; color: #1e293b; }
+
+.reply-form-wrap { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+.reply-form-wrap form { display: flex; gap: 8px; width: 100%; }
+.reply-input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; font-size: 14px; }
+.reply-input:focus { outline: none; border-color: #00338D; background: #ffffff; box-shadow: 0 0 0 3px rgba(0, 51, 141, 0.1); }
+
+.reply-thread summary,
+.reply-children-details summary,
+.reply-form-details summary {
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.reply-thread summary {
+    font-weight: normal;
+}
+
+.reply-children {
+    margin-top: 12px;
+    margin-left: 16px;
+    border-left: 2px dashed #dbeafe;
+    padding-left: 12px;
+}
+
+.reply-level-0 {
+    margin-top: 12px;
+}
+
+.reply-level-1 {
+    margin-top: 10px;
+    border-left: 2px solid #e2e8f0;
+    padding-left: 10px;
+    background: #f8fbff;
+}
+
+.reply-level-2 {
+    margin-top: 10px;
+    border-left: 2px solid #cfe0ff;
+    padding-left: 10px;
+    background: #f5f8ff;
+}
+
+
+/* ==========================================
+   2. ブックメーカー・ユーザーベッティングエリア
+   ========================================== */
+.betting-status-details { 
+    border-left: 4px solid #7213EA; 
+    background: #fff; 
+    border-top: 1px solid #e2e8f0; 
+    border-right: 1px solid #e2e8f0; 
+    border-bottom: 1px solid #e2e8f0; 
+    border-radius: 0 8px 8px 0; 
+    margin-bottom: 20px;
+}
+.betting-status-title { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 16px 20px !important; 
+    background-color: #ffffff; 
+    cursor: pointer; 
+    user-select: none;
+}
+.betting-status-details summary::-webkit-details-marker { display: none; }
+.betting-status-details summary { list-style: none; }
+.toggle-icon { font-size: 11px; color: #94a3b8; transition: transform 0.2s; }
+.betting-status-details[open] .toggle-icon { transform: rotate(90deg); color: #7213EA; }
+.betting-status-content { padding: 0 20px 20px 20px; background: #fff; }
+
+.betting-title-flex {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 🪙 持ちポイントバッジ */
+.point-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #e2e8f0;
+}
+.point-badge strong {
+    color: #FF530D;
+    font-size: 15px;
+    margin: 0 2px;
+}
+
+/* 📊 状態別バッジ（汎用） */
+.badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+.badge-win     { color: #FF530D; background: rgba(255, 83, 13, 0.1); }
+.badge-lose    { color: #64748b; background: #e2e8f0; }
+.badge-pending { color: #7213EA; background: rgba(114, 19, 234, 0.1); }
+.badge-active  { color: #0091DA; background: rgba(0, 145, 218, 0.1); }
+
+
+/* ==========================================
+   3. 📊 ベッティング戦績サマリーミニカード
+   ========================================== */
+.betting-summary-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed #e2e8f0;
+}
+.stat-mini-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.stat-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+}
+.stat-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+}
+#recovery-rate {
+    font-size: 18px;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+}
+
+@media (max-width: 560px) {
+    .betting-summary-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
+
+/* ==========================================
+   4. 📊 スッキリ表形式（テーブルUI）
+   ========================================== */
+.bet-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+.bet-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+}
+.bet-history-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    padding: 12px 16px;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+.bet-history-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+}
+.bet-history-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+.table-topic-title {
+    font-weight: 500;
+    color: #64748b;
+    max-width: 240px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    line-height: 1.4;
+    max-height: 2.8em;
+}
+.table-option-text {
+    font-weight: 700;
+    color: #0f172a;
+}
+.num-col {
+    text-align: right;
+    font-weight: 600;
+}
+.bet-odds-num {
+    font-family: monospace;
+    font-weight: 700;
+    color: #005eb8;
+}
+
+/* 「対象のお題」列の省略を解除して全文表示＆高さ可変にする */
+.bet-history-table td.table-topic-title {
+    white-space: normal !important;   /* 自動で折り返すようにする */
+    word-break: break-all !important; /* 長い英数字があっても強制破断して収める */
+    height: auto !important;          /* 高さを可変にする */
+    min-width: 200px;                 /* 狭くなりすぎないように最低幅を確保（お好みで調整） */
+    line-height: 1.4;                 /* 複数行になったときの行間を見やすく */
+}
+
+/* --- 以下はさきほどの背景色・左線削除のコード（一緒にまとめてお使いください） --- */
+
+/* 1. 的中（win）: 薄いオレンジの背景 */
+.bet-history-table tbody tr.tr-win {
+    border-left: none !important;
+    background-color: #fff7ed !important;
+}
+
+/* 2. 不的中（lose）: 薄いグレーの背景 ＋ 文字を少し不透明に */
+.bet-history-table tbody tr.tr-lose {
+    border-left: none !important;
+    background-color: #f8fafc !important;
+    color: #94a3b8;
+}
+
+/* 3. 進行中（pending）: 薄いブルーの背景 */
+.bet-history-table tbody tr.tr-pending {
+    border-left: none !important;
+    background-color: #f0fdfa !important;
+}
+
+/* 払い戻し結果カラー */
+.payout-amount { font-weight: 700; }
+.payout-pending { color: #64748b; }
+.payout-win { color: #10b981; }
+.payout-lose { color: #ef4444; }
+
+
+/* ==========================================
+   5. 🎰 ベッティング投票・お題カードエリア
+   ========================================== */
+.option-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+.option-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+.option-box:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+.option-info-zone {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+.bet-option-text {
+    font-size: 15px;
+    color: #0f172a;
+    font-weight: 700;
+}
+.bet-odds-badge {
+    background: #fff3eb;
+    color: #ff530d;
+    border: 1px solid rgba(255, 83, 13, 0.3);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 400;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* 一体型ベットフォーム */
+.bet-action-form {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 2px solid #005eb8;
+    border-radius: 8px;
+    overflow: hidden;
+    padding-left: 8px;
+    height: 38px;
+    box-sizing: border-box;
+}
+.bet-action-form:focus-within {
+    box-shadow: 0 0 0 3px rgba(0, 94, 184, 0.2);
+}
+.bet-input-pt {
+    width: 65px !important;
+    height: 100% !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 4px !important;
+    font-size: 14px !important;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: right;
+}
+.unit-pt {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    margin-right: 8px;
+    margin-left: 2px;
+    white-space: nowrap;
+}
+.btn-bet {
+    height: 100% !important;
+    padding: 0 16px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    background: #005eb8 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s;
+}
+.btn-bet:hover {
+    background: #00338d !important;
+}
+
+@media (max-width: 520px) {
+    .option-box { flex-direction: column; align-items: stretch; gap: 12px; }
+    .option-info-zone { justify-content: space-between; }
+    .bet-action-form { width: 100%; justify-content: space-between; }
+    .bet-input-pt { flex: 1; }
+}
+
+
+/* ==========================================
+   6. 🔒 終了済みセクション（2カラム）
+   ========================================== */
+.topic-grid-closed { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .topic-grid-closed { grid-template-columns: 1fr; } }
+.topic-card.topic-closed { background: #f1f5f9; opacity: 0.8; box-shadow: none; }
+.option-box-closed { background: #ffffff; padding: 6px 10px; border-radius: 4px; font-size: 12px; display: flex; justify-content: space-between; color: #64748b; border: 1px solid #e2e8f0; margin-bottom: 4px; }
+.option-box-closed.correct-option-compact { border-color: #FF530D; background: rgba(255, 83, 13, 0.03); color: #0f172a; }
+
+
+/* ==========================================
+   7. タブボタン ＆ スライドレイアウト
+   ========================================== */
+.tabs-container { display: flex; gap: 5px; margin-top: 25px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; }
+.tab-button { background: none; border: none; color: #64748b; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; position: relative; bottom: -2px; }
+.tab-button:hover { color: #0f172a; }
+.tab-button.active { color: #00338D; border-bottom: 2px solid #00338D; }
+.tab-slider-wrapper { width: 100%; overflow: hidden; }
+.tab-content-slider { display: flex; width: 200%; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.slider-pane { width: 50%; flex-shrink: 0; box-sizing: border-box; }
+.topic-grid { display: flex; flex-direction: column; gap: 16px; }
+.board-container { max-width: 680px; margin: 0 auto; }
+.topic-title { font-size: 16px; margin-top: 0; margin-bottom: 8px; color: #0f172a; font-weight: 600; }
+.topic-meta { display: flex; gap: 10px; color: #94a3b8; font-size: 12px; margin-bottom: 12px; }
+
+
+/* ==========================================
+   8. ポップアップ（モーダル）
+   ========================================== */
+.modal-overlay { 
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; width: 100%; height: 100%; 
+    background-color: rgba(15, 23, 42, 0.4); 
+    backdrop-filter: blur(4px); 
+    z-index: 2000;
+    justify-content: center; 
+    align-items: center; 
+}
+.modal-overlay.is-active { display: flex; }
+.modal-content { width: 100%; max-width: 460px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border-radius: 16px; padding: 24px; color: #1e293b; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; }
+.modal-header h3 { font-size: 18px; margin: 0; color: #00338D; font-weight: 600; }
+.modal-close-x { background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; transition: color 0.2s; }
+.modal-close-x:hover { color: #475569; }
+
+.form-group { margin-bottom: 14px; }
+.form-group-row { display: flex; gap: 10px; margin-bottom: 14px; }
+.form-group-row > div { flex: 1; }
+.form-group label, .form-group-row label { display: block; font-size: 13px; color: #475569; margin-bottom: 6px; font-weight: bold; }
+
+
+/* ==========================================
+   9. 👍 リアクション ＆ ユーティリティ
+   ========================================== */
+.reaction-wrapper { position: relative; display: inline-block; }
+.reaction-popover {
+    display: none; position: absolute; bottom: 125%; right: 0; width: 180px;
+    background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08); z-index: 10; padding: 10px;
+    animation: fadeIn 0.15s ease-out;
+}
+.reaction-wrapper:hover .reaction-popover { display: block; }
+.popover-title { font-size: 11px; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px; }
+.popover-user-list { list-style: none; padding: 0; margin: 0; max-height: 120px; overflow-y: auto; }
+.popover-user-list li { font-size: 12px; color: #334155; padding: 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.success-msg, .error-msg { padding: 10px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; text-align: center; font-weight: 600; }
+.success-msg { border: 1px solid #005EB8; color: #00338D; background: rgba(0, 94, 184, 0.04); }
+.error-msg   { border: 1px solid #cbd5e1; color: #64748b; background: #f8fafc; }
+
+/* ==========================================================================
+   引用お題（完全な灰色基調デザイン）
+   ========================================================================== */
+
+/* 1. 引用部分全体のコンテナ */
+.shared-topic-card {
+    background-color: #f1f5f9 !important; /* ほんのり濃いめの落ち着いたグレー背景 */
+    border: 1px solid #cbd5e1 !important;  /* 全体を囲むシックなグレーの線 */
+    border-left: 4px solid #94a3b8 !important; /* 左側の線も落ち着いたミディアムグレーに統一 */
+    border-radius: 8px !important;         /* 角を丸めて上品に */
+    padding: 12px 16px !important;         /* 内側の余白 */
+    margin: 12px 0 4px 0 !important;       /* メッセージ本文との間のスキマ */
+    transition: all 0.2s ease;
+}
+
+/* マウスホバー時に少しだけ枠線と背景を濃くして立体感を出す */
+.shared-topic-card:hover {
+    background-color: #e2e8f0 !important;
+    border-color: #64748b !important;
+}
+
+/* 2. 引用のヘッダー部分（バッジと期限） */
+.shared-topic-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+/* 「引用お題」のバッジ（少し濃いめのグレーで文字を白に） */
+.quote-badge {
+    background-color: #64748b !important;
+    color: #ffffff !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    letter-spacing: 0.05em;
+}
+
+/* 期限のテキスト */
+.quote-deadline {
+    font-size: 11px !important;
+    color: #64748b !important;
+}
+
+/* 3. 引用内のお題タイトル */
+.shared-topic-title {
+    display: block !important;
+    font-size: 14px !important;
+    color: #334155 !important; /* 真っ黒ではなくダークグレー */
+    margin-bottom: 4px !important;
+    line-height: 1.4 !important;
+}
+
+/* 4. 引用内の説明文 */
+.shared-topic-description {
+    font-size: 12px !important;
+    color: #475569 !important; /* ミディアムグレー */
+    margin-bottom: 10px !important;
+    line-height: 1.5 !important;
+}
+
+/* 5. 「このお題に賭ける ➔」ボタンもグレー基調に変更 */
+.quote-link-btn {
+    background-color: #475569 !important; /* チャコールグレー */
+    border-color: #475569 !important;
+    color: #ffffff !important;
+    padding: 4px 12px !important;
+    font-size: 11px !important;
+    border-radius: 4px !important;
+    display: inline-block !important;
+    text-decoration: none;
+}
+
+.quote-link-btn:hover {
+    background-color: #334155 !important; /* ホバーでさらに濃く */
+    border-color: #334155 !important;
+}
+
+/* ==========================================================================
+   投稿カード最下部（時間といいね）の配置調整
+   ========================================================================== */
+
+/* 時間といいねボタンを包む親コンテナを横並び＆上下中央揃えにする */
+.chat-meta-layout {
+    display: flex !important;
+    justify-content: space-between !important; /* 時間を左、いいねを右に端寄せ */
+    align-items: center !important;         /* 縦方向の高さをピッタリ揃える（超重要） */
+    margin-top: 14px !important;            /* 引用カードや本文との間に適度な隙間を作る */
+    padding-top: 8px !important;            /* 上部に薄い境界線を入れる場合はここ */
+    border-top: 1px dashed #e2e8f0;         /* 任意：メッセージ部分との区切り（不要なら削除してください） */
+}
+
+/* 時間表示のテキストの高さ調整 */
+.chat-meta-layout .meta-date {
+    font-size: 12px !important;
+    color: #64748b !important;
+    display: inline-flex !important;
+    align-items: center !important;         /* 時計絵文字と文字の高さも揃える */
+    line-height: 1 !important;              /* 行高によるズレを防止 */
+}
+
+/* 反応ボタンまわりのラッパーのズレ防止 */
+.reaction-wrapper {
+    display: inline-flex !important;
+    align-items: center !important;         /* ボタンの縦位置を固定 */
+    position: relative;                     /* ポップオーバーの基準位置 */
+}
+
+/* いいね！ボタン自体の余計なマージンをリセット */
+.reaction-trigger-btn {
+    margin: 0 !important;
+    padding: 6px 12px !important;           /* ボタンの内側余白を整えてスッキリさせる */
+    line-height: 1.2 !important;            /* ボタン内テキストの縦中央揃え */
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+/* フォームの隙間によるズレを防止 */
+.chat-meta-layout .inline-form {
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+/* ==========================================================================
+   10. 🔍 検索機能専用スタイル（1行固定版に修正）
+   ========================================================================== */
+
+/* 検索窓全体のコンテナ */
+.search-box-container {
+    margin-bottom: 24px;
+    padding: 0;
+}
+
+/* フォームを1行に絶対固定する設定 */
+.search-form {
+    display: flex !important;
+    flex-direction: row !important; /* 絶対に縦並びにさせない */
+    gap: 10px !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+/* 入力欄のラッパー */
+.search-input-wrap {
+    position: relative !important;
+    flex: 1 !important; /* 検索ボタン以外の横幅を限界まで広げる */
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* 検索入力欄（width: 100% の競合をこれで上書き解決） */
+.search-input {
+    width: 100% !important; /* ラッパーの中だけで100% */
+    height: 42px !important;
+    padding: 0 40px 0 14px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 検索実行ボタン（勝手に縮んだり2行目に行かないように固定） */
+.search-submit-btn {
+    height: 42px !important;
+    white-space: nowrap !important; /* 文字の折り返しを絶対禁止 */
+    flex-shrink: 0 !important;     /* ボタンが潰れるのを絶対禁止 */
+    padding: 0 24px !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+}
+
+/* 入力欄の中にある「×」クリアボタン */
+.search-clear-btn {
+    position: absolute !important;
+    right: 12px !important;
+    font-size: 20px !important;
+    color: #94a3b8 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    line-height: 1 !important;
+    z-index: 5 !important;
+}
+.search-clear-btn:hover {
+    color: #475569 !important;
+}
+
+/* 検索結果の件数表示テキスト */
+.search-result-notify {
+    margin-top: 10px !important;
+    margin-bottom: 0 !important;
+    font-size: 13px !important;
+    color: #64748b !important;
+}
+.search-result-notify strong {
+    color: #00338D !important;
+}
