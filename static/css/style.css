@@ -1,890 +1,393 @@
 /* ==========================================
-   1. システム全体共通スタイル（KPMGカラーベース）
+   1. 共通トークンとベース
    ========================================== */
+:root {
+  --kpmg-navy: #00338d;
+  --kpmg-blue: #005eb8;
+  --kpmg-purple: #7213ea;
+  --kpmg-orange: #ff7a00;
+  --kpmg-orange-strong: #ff530d;
+  --kpmg-border: #e2e8f0;
+  --kpmg-muted: #64748b;
+  --kpmg-surface: #f8fafc;
+  --kpmg-bg: #f1f5f9;
+  --kpmg-text: #1e293b;
+  --kpmg-text-strong: #0f172a;
+  --shadow-sm: 0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -1px rgba(0,0,0,.03);
+}
+
+* { box-sizing: border-box; }
 body {
-    background-color: #f1f5f9; /* 淡いグレー */
-    color: #1e293b; /* ダークグレー */
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
-    line-height: 1.6;
-    margin: 0 auto;
-    padding: 20px;
-    max-width: 800px;
-    overflow-x: hidden;
-    box-sizing: border-box;
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 800px;
+  overflow-x: hidden;
+  background: var(--kpmg-bg);
+  color: var(--kpmg-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+  line-height: 1.6;
 }
+.board-body { padding-top: 90px; margin: 0 auto; }
+h1, h2, h3, strong { color: var(--kpmg-text-strong); }
 
-/* 掲示板（Timeline）画面時のみ適用される調整 */
-.board-body {
-    padding-top: 90px; /* 固定ヘッダー分の余白を強制確保 */
-    margin: 0 auto;
+/* ==========================================
+   2. レイアウト・カード・ボタン
+   ========================================== */
+.bm-header, .card, .topic-card {
+  background: #fff;
+  border: 1px solid var(--kpmg-border);
+  box-shadow: var(--shadow-sm);
 }
-
-h1, h2, h3, strong { 
-    color: #0f172a; 
-}
-
-/* 🧱 固定・通常両対応のヘッダー */
 .bm-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-    padding: 15px 20px;
-    background-color: #ffffff;
-    border-bottom: 3px solid #00338D; /* KPMG Deep Navy */
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding: 15px 20px;
+  border-bottom: 3px solid var(--kpmg-navy);
+  border-radius: 8px;
 }
-
-/* 掲示板側で固定化 */
 .fixed-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: auto;
-    height: 70px;
-    z-index: 1000;
-    margin-bottom: 0;
-    border-radius: 0;
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-    padding: 0 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  position: fixed; inset: 0 0 auto 0;
+  z-index: 1000;
+  height: 70px;
+  margin: 0;
+  padding: 0 24px;
+  border-radius: 0;
+  border-bottom: 1px solid var(--kpmg-border);
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
 }
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
+.header-left, .header-right { display: flex; align-items: center; }
+.header-left { gap: 16px; }
+.header-right { gap: 12px; }
 .fixed-header .page-main-title {
-    margin: 0;
-    font-size: 18px;
-    color: #00338D;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    white-space: nowrap;
+  margin: 0; font-size: 18px; color: var(--kpmg-navy); font-weight: 700; letter-spacing: -.5px; white-space: nowrap;
 }
-
-.header-right {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-/* 📦 共通カードコンポーネント */
-/* 📦 共通カードコンポーネント（下線アクセント） */
 .card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-bottom: 4px solid #005EB8; /* KPMG Medium Blue アクセント */
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-}
-
-/* 📌 お題専用カード（左線なし・外枠フォーカス） */
+.card:hover, .topic-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -2px rgba(0,0,0,.04); }
 .topic-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0; /* 初期状態はシンプルな薄い枠線 */
-    border-radius: 12px;       /* .cardと統一感を持たせるため12pxに調整 */
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
 }
+.topic-card:hover { border-color: var(--kpmg-blue); }
 
-.topic-card:hover {
-    transform: translateY(-2px);
-    /* 👇 ホバーした時だけ、外枠が KPMG Blue に綺麗に変化します */
-    border-color: #005EB8; 
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-}
-/* 🖱️ ボタンパーツ */
 .btn {
-    color: #ffffff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-    font-size: 13px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 18px; border: none; border-radius: 6px;
+  font-size: 13px; font-weight: 600; color: #fff; text-decoration: none; cursor: pointer;
+  transition: transform .2s ease, opacity .2s ease;
 }
-.btn:hover { 
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-.btn:active {
-    transform: translateY(0);
-}
-.btn-primary   { background: #005EB8; color: #ffffff; }
-.btn-secondary { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; }
+.btn:hover { opacity: .9; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: var(--kpmg-blue); }
+.btn-secondary { background: var(--kpmg-surface); border: 1px solid #cbd5e1; color: #475569; }
 .btn-secondary:hover { background: #f1f5f9; color: #0f172a; }
-.btn-danger { background: #dc3545; color: #ffffff; }
+.btn-danger { background: #dc3545; }
 .btn-danger:hover { background: #b02a37; }
 .small-btn { padding: 6px 12px; font-size: 12px; }
-.full-width { width: 100%; }
+.btn-sm { padding: 6px 12px; font-size: 13px; }
+.full-width, .btn-full { width: 100%; }
 
-/* ✍️ 画面右下のフローティング投稿ボタン */
+/* 固定配置・浮遊投稿ボタン */
 .floating-post-btn {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #005EB8;
-    color: #fff;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0, 94, 184, 0.35);
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: var(--kpmg-blue);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 51, 141, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 .floating-post-btn:hover {
-    transform: scale(1.1);
-    background: #00338D;
+  background: var(--kpmg-navy);
+  transform: scale(1.05);
 }
 
-/* 📝 入力フォーム全般 */
-input[type="text"], input[type="password"], input[type="number"], input[type="datetime-local"], textarea {
-    width: 100%; 
-    background-color: #f8fafc; 
-    border: 1px solid #cbd5e1; 
-    color: #0f172a;
-    padding: 12px; 
-    border-radius: 8px; 
-    box-sizing: border-box; 
-    font-size: 14px;
-    transition: all 0.2s ease;
+/* ==========================================
+   3. フォーム・入力
+   ========================================== */
+input[type="text"], input[type="password"], input[type="number"], input[type="datetime-local"], textarea, .form-upload-file {
+  width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: var(--kpmg-surface); color: var(--kpmg-text-strong); font-size: 14px; box-sizing: border-box;
 }
-input:focus, textarea:focus { 
-    outline: none; 
-    border-color: #00338D; 
-    background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(0, 51, 141, 0.1); 
+input:focus, textarea:focus {
+  outline: none; border-color: var(--kpmg-navy); background: #fff; box-shadow: 0 0 0 3px rgba(0,51,141,.1);
 }
 textarea { resize: none; }
-
-.form-upload-file {
-    width: 100%;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 10px;
-    background: #f8fafc;
-    color: #0f172a;
+.form-group { margin-bottom: 14px; }
+.form-group-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-group-row > div { min-width: 0; }
+.form-group label, .form-group-row label, .input-label {
+  display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: #475569;
 }
 
-.chat-image-wrap {
-    margin-top: 12px;
-}
-
-.chat-image {
-    max-width: 100%;
-    border-radius: 12px;
-    display: block;
-    margin-top: 10px;
-}
-
+/* ==========================================
+   4. 投稿・返信・リアクション
+   ========================================== */
+.chat-image-wrap { margin-top: 12px; }
+.chat-image { display: block; max-width: 100%; margin-top: 10px; border-radius: 12px; }
 .chat-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
-.chat-header .topic-detail { margin: 0; flex: 1; }
+.chat-header .topic-detail { flex: 1; margin: 0; }
 .delete-form { flex-shrink: 0; }
-
-.replies-list { margin-top: 12px; border-left: 3px solid #e6eef9; padding-left: 12px; }
-.reply-item { margin-bottom: 8px; padding: 8px; background: #fbfdff; border-radius: 8px; border: 1px solid #f0f0f0; }
-.reply-user { font-weight: 700; margin-right: 8px; color: #475569; }
+.replies-list { margin-top: 12px; padding-left: 12px; border-left: 3px solid #e6eef9; }
+.reply-item { margin-bottom: 8px; padding: 8px; border: 1px solid #f0f0f0; border-radius: 8px; background: #fbfdff; }
+.reply-user { margin-right: 8px; font-weight: 700; color: #475569; }
 .reply-time { font-size: 12px; color: #94a3b8; }
-.reply-text { margin: 6px 0 0 0; color: #1e293b; }
-
-.reply-form-wrap { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+.reply-text { margin: 6px 0 0; color: var(--kpmg-text); }
+.reply-form-wrap { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--kpmg-border); }
 .reply-form-wrap form { display: flex; gap: 8px; width: 100%; }
-.reply-input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; font-size: 14px; }
-.reply-input:focus { outline: none; border-color: #00338D; background: #ffffff; box-shadow: 0 0 0 3px rgba(0, 51, 141, 0.1); }
+.reply-input { flex: 1; padding: 10px 12px; }
+.reply-input:focus { outline: none; border-color: var(--kpmg-navy); background: #fff; box-shadow: 0 0 0 3px rgba(0,51,141,.1); }
+.reply-thread summary, .reply-children-details summary, .reply-form-details summary { cursor: pointer; padding: 8px 0; }
+.reply-thread summary { font-weight: 400; }
+.reply-children { margin-top: 12px; margin-left: 16px; padding-left: 12px; border-left: 2px dashed #dbeafe; }
+.reply-level-0 { margin-top: 12px; }
+.reply-level-1, .reply-level-2 { margin-top: 10px; padding-left: 10px; }
+.reply-level-1 { border-left: 2px solid var(--kpmg-border); background: #f8fbff; }
+.reply-level-2 { border-left: 2px solid #cfe0ff; background: #f5f8ff; }
 
-.reply-thread summary,
-.reply-children-details summary,
-.reply-form-details summary {
-    cursor: pointer;
-    padding: 8px 0;
+/* リアクション (いいね) ポップオーバー制御 */
+.reaction-wrapper { display: inline-flex; align-items: center; position: relative; }
+.reaction-trigger-btn { display: inline-flex; align-items: center; margin: 0 !important; padding: 6px 12px !important; line-height: 1.2 !important; }
+
+.reaction-popover { display: none;
+  position: absolute;
+  bottom: 120%;
+  right: 0;
+  z-index: 100;
+  width: 180px;
+  padding: 10px;
+  border: 1px solid var(--kpmg-border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+  animation: fadeIn 0.2s ease;
 }
-
-.reply-thread summary {
-    font-weight: normal;
+.reaction-wrapper:hover .reaction-popover {
+  display: block;
 }
-
-.reply-children {
-    margin-top: 12px;
-    margin-left: 16px;
-    border-left: 2px dashed #dbeafe;
-    padding-left: 12px;
+.popover-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--kpmg-muted);
+  margin-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 4px;
 }
-
-.reply-level-0 {
-    margin-top: 12px;
+.popover-user-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 120px;
+  overflow-y: auto;
 }
-
-.reply-level-1 {
-    margin-top: 10px;
-    border-left: 2px solid #e2e8f0;
-    padding-left: 10px;
-    background: #f8fbff;
+.popover-user-list li {
+  font-size: 12px;
+  color: var(--kpmg-text);
+  padding: 3px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
-.reply-level-2 {
-    margin-top: 10px;
-    border-left: 2px solid #cfe0ff;
-    padding-left: 10px;
-    background: #f5f8ff;
+.popover-empty {
+  font-size: 11px;
+  color: var(--kpmg-muted);
+  font-style: italic;
 }
-
 
 /* ==========================================
-   2. ブックメーカー・ユーザーベッティングエリア
+   5. ベッティング関連
    ========================================== */
-.betting-status-details { 
-    border-left: 4px solid #7213EA; 
-    background: #fff; 
-    border-top: 1px solid #e2e8f0; 
-    border-right: 1px solid #e2e8f0; 
-    border-bottom: 1px solid #e2e8f0; 
-    border-radius: 0 8px 8px 0; 
-    margin-bottom: 20px;
-}
-.betting-status-title { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 16px 20px !important; 
-    background-color: #ffffff; 
-    cursor: pointer; 
-    user-select: none;
-}
-.betting-status-details summary::-webkit-details-marker { display: none; }
+.betting-status-details { margin-bottom: 20px; border-left: 4px solid var(--kpmg-purple); border-top: 1px solid var(--kpmg-border); border-right: 1px solid var(--kpmg-border); border-bottom: 1px solid var(--kpmg-border); border-radius: 0 8px 8px 0; background: #fff; }
+.betting-status-title { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px !important; background: #fff; cursor: pointer; user-select: none; }
+.betting-status-content { padding: 0 20px 20px; background: #fff; }
 .betting-status-details summary { list-style: none; }
-.toggle-icon { font-size: 11px; color: #94a3b8; transition: transform 0.2s; }
-.betting-status-details[open] .toggle-icon { transform: rotate(90deg); color: #7213EA; }
-.betting-status-content { padding: 0 20px 20px 20px; background: #fff; }
-
-.betting-title-flex {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-/* 🪙 持ちポイントバッジ */
-.point-badge {
-    display: inline-flex;
-    align-items: center;
-    background: #f1f5f9;
-    color: #475569;
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid #e2e8f0;
-}
-.point-badge strong {
-    color: #FF530D;
-    font-size: 15px;
-    margin: 0 2px;
-}
-
-/* 📊 状態別バッジ（汎用） */
-.badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-.badge-win     { color: #FF530D; background: rgba(255, 83, 13, 0.1); }
-.badge-lose    { color: #64748b; background: #e2e8f0; }
-.badge-pending { color: #7213EA; background: rgba(114, 19, 234, 0.1); }
-.badge-active  { color: #0091DA; background: rgba(0, 145, 218, 0.1); }
-
-
-/* ==========================================
-   3. 📊 ベッティング戦績サマリーミニカード
-   ========================================== */
-.betting-summary-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px dashed #e2e8f0;
-}
-.stat-mini-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px 8px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-.stat-label {
-    font-size: 11px;
-    color: #64748b;
-    font-weight: 600;
-}
-.stat-value {
-    font-size: 16px;
-    font-weight: 800;
-    color: #0f172a;
-}
-#recovery-rate {
-    font-size: 18px;
-    font-family: 'Impact', 'Arial Black', sans-serif;
-}
-
-@media (max-width: 560px) {
-    .betting-summary-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-    }
-}
-
-
-/* ==========================================
-   4. 📊 スッキリ表形式（テーブルUI）
-   ========================================== */
-.bet-table-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    margin-top: 12px;
-}
-.bet-history-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 13px;
-}
-.bet-history-table th {
-    background: #f8fafc;
-    color: #475569;
-    font-weight: 700;
-    padding: 12px 16px;
-    border-bottom: 2px solid #e2e8f0;
-    white-space: nowrap;
-}
-.bet-history-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
-    vertical-align: middle;
-}
-.bet-history-table tbody tr:hover {
-    background-color: #f8fafc;
-}
-.table-topic-title {
-    font-weight: 500;
-    color: #64748b;
-    max-width: 240px;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    white-space: normal;
-    line-height: 1.4;
-    max-height: 2.8em;
-}
-.table-option-text {
-    font-weight: 700;
-    color: #0f172a;
-}
-.num-col {
-    text-align: right;
-    font-weight: 600;
-}
-.bet-odds-num {
-    font-family: monospace;
-    font-weight: 700;
-    color: #005eb8;
-}
-
-/* 「対象のお題」列の省略を解除して全文表示＆高さ可変にする */
-.bet-history-table td.table-topic-title {
-    white-space: normal !important;   /* 自動で折り返すようにする */
-    word-break: break-all !important; /* 長い英数字があっても強制破断して収める */
-    height: auto !important;          /* 高さを可変にする */
-    min-width: 200px;                 /* 狭くなりすぎないように最低幅を確保（お好みで調整） */
-    line-height: 1.4;                 /* 複数行になったときの行間を見やすく */
-}
-
-/* --- 以下はさきほどの背景色・左線削除のコード（一緒にまとめてお使いください） --- */
-
-/* 1. 的中（win）: 薄いオレンジの背景 */
-.bet-history-table tbody tr.tr-win {
-    border-left: none !important;
-    background-color: #fff7ed !important;
-}
-
-/* 2. 不的中（lose）: 薄いグレーの背景 ＋ 文字を少し不透明に */
-.bet-history-table tbody tr.tr-lose {
-    border-left: none !important;
-    background-color: #f8fafc !important;
-    color: #94a3b8;
-}
-
-/* 3. 進行中（pending）: 薄いブルーの背景 */
-.bet-history-table tbody tr.tr-pending {
-    border-left: none !important;
-    background-color: #f0fdfa !important;
-}
-
-/* 払い戻し結果カラー */
+.betting-status-details summary::-webkit-details-marker { display: none; }
+.toggle-icon { font-size: 11px; color: #94a3b8; transition: transform .2s; }
+.betting-status-details[open] .toggle-icon { transform: rotate(90deg); color: var(--kpmg-purple); }
+.betting-title-flex { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.point-badge { display: inline-flex; align-items: center; gap: 2px; padding: 4px 12px; border: 1px solid var(--kpmg-border); border-radius: 6px; background: var(--kpmg-surface); color: #475569; font-size: 13px; font-weight: 500; }
+.point-badge strong { margin: 0 2px; color: var(--kpmg-orange-strong); font-size: 15px; }
+.badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.badge-win { color: var(--kpmg-orange-strong); background: rgba(255,83,13,.1); }
+.badge-lose { color: var(--kpmg-muted); background: var(--kpmg-border); }
+.badge-pending { color: var(--kpmg-purple); background: rgba(114,19,234,.1); }
+.badge-active { color: #0091da; background: rgba(0,145,218,.1); }
+.badge-compact { padding: 2px 6px; font-size: 11px; }
+.badge-win-compact { background: var(--kpmg-orange); color: #fff; }
+.betting-summary-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--kpmg-border); }
+.stat-mini-card { display: flex; flex-direction: column; gap: 4px; padding: 12px 8px; border: 1px solid var(--kpmg-border); border-radius: 8px; background: var(--kpmg-surface); text-align: center; }
+.stat-mini-card-highlight { background: #f1f5f9; border-color: #cbd5e1; }
+.stat-label { font-size: 11px; color: var(--kpmg-muted); font-weight: 600; }
+.stat-value { font-size: 16px; font-weight: 800; color: var(--kpmg-text-strong); }
+#recovery-rate { font-size: 18px; font-family: 'Impact', 'Arial Black', sans-serif; }
+.bet-table-wrapper { width: 100%; margin-top: 12px; overflow-x: auto; border: 1px solid var(--kpmg-border); border-radius: 8px; background: #fff; }
+.bet-history-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+.bet-history-table th, .bet-history-table td { padding: 12px 16px; }
+.bet-history-table th { border-bottom: 2px solid var(--kpmg-border); background: var(--kpmg-surface); color: #475569; font-weight: 700; white-space: nowrap; }
+.bet-history-table td { border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
+.bet-history-table tbody tr:hover { background: var(--kpmg-surface); }
+.table-topic-title { max-width: 240px; max-height: 2.8em; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; line-height: 1.4; font-weight: 500; color: var(--kpmg-muted); }
+.table-option-text { font-weight: 700; color: var(--kpmg-text-strong); }
+.num-col { text-align: right; font-weight: 600; }
+.bet-odds-num { font-family: monospace; font-weight: 700; color: var(--kpmg-blue); }
+.bet-history-table td.table-topic-title { min-width: 200px; height: auto; word-break: break-all; }
+.bet-history-table tbody tr.tr-win { background: #fff7ed !important; }
+.bet-history-table tbody tr.tr-lose { background: #f8fafc !important; color: #94a3b8; }
+.bet-history-table tbody tr.tr-pending { background: #f0fdfa !important; }
+.payout-result-cell { font-weight: 700; }
+.payout-win-text { color: #ea580c; }
 .payout-amount { font-weight: 700; }
-.payout-pending { color: #64748b; }
+.payout-pending { color: var(--kpmg-muted); }
 .payout-win { color: #10b981; }
 .payout-lose { color: #ef4444; }
 
-
 /* ==========================================
-   5. 🎰 ベッティング投票・お題カードエリア
+   6. お題カード・投票フォーム
    ========================================== */
-.option-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 15px;
-}
-.option-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    transition: all 0.2s ease;
-}
-.option-box:hover {
-    border-color: #cbd5e1;
-    background: #f1f5f9;
-}
-.option-info-zone {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-}
-.bet-option-text {
-    font-size: 15px;
-    color: #0f172a;
-    font-weight: 700;
-}
-.bet-odds-badge {
-    background: #fff3eb;
-    color: #ff530d;
-    border: 1px solid rgba(255, 83, 13, 0.3);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 400;
-    font-family: 'Impact', 'Arial Black', sans-serif;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-}
-
-/* 一体型ベットフォーム */
-.bet-action-form {
-    display: flex;
-    align-items: center;
-    background: #ffffff;
-    border: 2px solid #005eb8;
-    border-radius: 8px;
-    overflow: hidden;
-    padding-left: 8px;
-    height: 38px;
-    box-sizing: border-box;
-}
-.bet-action-form:focus-within {
-    box-shadow: 0 0 0 3px rgba(0, 94, 184, 0.2);
-}
-.bet-input-pt {
-    width: 65px !important;
-    height: 100% !important;
-    border: none !important;
-    background: transparent !important;
-    padding: 0 4px !important;
-    font-size: 14px !important;
-    font-weight: 700;
-    color: #0f172a;
-    text-align: right;
-}
-.unit-pt {
-    font-size: 12px;
-    color: #64748b;
-    font-weight: 600;
-    margin-right: 8px;
-    margin-left: 2px;
-    white-space: nowrap;
-}
-.btn-bet {
-    height: 100% !important;
-    padding: 0 16px !important;
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    background: #005eb8 !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 0 !important;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.1s;
-}
-.btn-bet:hover {
-    background: #00338d !important;
-}
-
-@media (max-width: 520px) {
-    .option-box { flex-direction: column; align-items: stretch; gap: 12px; }
-    .option-info-zone { justify-content: space-between; }
-    .bet-action-form { width: 100%; justify-content: space-between; }
-    .bet-input-pt { flex: 1; }
-}
-
-
-/* ==========================================
-   6. 🔒 終了済みセクション（2カラム）
-   ========================================== */
+.option-container { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+.option-box { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border: 1px solid var(--kpmg-border); border-radius: 10px; background: var(--kpmg-surface); transition: all .2s ease; }
+.option-box:hover { border-color: #cbd5e1; background: #f1f5f9; }
+.option-info-zone { display: flex; align-items: center; gap: 12px; flex: 1; }
+.bet-option-text { font-size: 15px; font-weight: 700; color: var(--kpmg-text-strong); }
+.bet-odds-badge { padding: 4px 10px; border: 1px solid rgba(255,83,13,.3); border-radius: 6px; background: #fff3eb; color: var(--kpmg-orange-strong); font-size: 14px; font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: .5px; white-space: nowrap; }
+.bet-action-form { display: flex; align-items: center; height: 38px; padding-left: 8px; border: 2px solid var(--kpmg-blue); border-radius: 8px; background: #fff; overflow: hidden; box-sizing: border-box; }
+.bet-action-form:focus-within { box-shadow: 0 0 0 3px rgba(0,94,184,.2); }
+.bet-input-pt { width: 65px !important; height: 100% !important; padding: 0 4px !important; border: none !important; background: transparent !important; color: var(--kpmg-text-strong); font-size: 14px !important; font-weight: 700; text-align: right; }
+.unit-pt { margin: 0 8px 0 2px; font-size: 12px; color: var(--kpmg-muted); font-weight: 600; white-space: nowrap; }
+.btn-bet { height: 100% !important; padding: 0 16px !important; border-radius: 0 !important; background: var(--kpmg-blue) !important; font-size: 13px !important; font-weight: 700 !important; }
+.btn-bet:hover { background: var(--kpmg-navy) !important; }
 .topic-grid-closed { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 600px) { .topic-grid-closed { grid-template-columns: 1fr; } }
-.topic-card.topic-closed { background: #f1f5f9; opacity: 0.8; box-shadow: none; }
-.option-box-closed { background: #ffffff; padding: 6px 10px; border-radius: 4px; font-size: 12px; display: flex; justify-content: space-between; color: #64748b; border: 1px solid #e2e8f0; margin-bottom: 4px; }
-.option-box-closed.correct-option-compact { border-color: #FF530D; background: rgba(255, 83, 13, 0.03); color: #0f172a; }
-
+.topic-card.topic-closed { background: #f1f5f9; opacity: .8; box-shadow: none; }
+.option-box--closed { display: flex; justify-content: space-between; padding: 6px 10px; margin-bottom: 4px; border: 1px solid var(--kpmg-border); border-radius: 4px; background: #fff; color: var(--kpmg-muted); font-size: 12px; }
+.option-box--closed.option-box--correct { border-color: var(--kpmg-orange-strong); background: rgba(255,83,13,.03); color: var(--kpmg-text-strong); }
 
 /* ==========================================
-   7. タブボタン ＆ スライドレイアウト
+   7. タブ・モーダル・メッセージ
    ========================================== */
-.tabs-container { display: flex; gap: 5px; margin-top: 25px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; }
-.tab-button { background: none; border: none; color: #64748b; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; position: relative; bottom: -2px; }
-.tab-button:hover { color: #0f172a; }
-.tab-button.active { color: #00338D; border-bottom: 2px solid #00338D; }
+.tabs-container { display: flex; gap: 5px; margin: 25px 0 15px; border-bottom: 2px solid var(--kpmg-border); }
+.tab-button { position: relative; bottom: -2px; padding: 10px 20px; border: none; background: none; color: var(--kpmg-muted); font-size: 14px; font-weight: 700; cursor: pointer; transition: all .2s; }
+.tab-button:hover { color: var(--kpmg-text-strong); }
+.tab-button.active { color: var(--kpmg-navy); border-bottom: 2px solid var(--kpmg-navy); }
 .tab-slider-wrapper { width: 100%; overflow: hidden; }
-.tab-content-slider { display: flex; width: 200%; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.tab-content-slider { display: flex; width: 200%; transition: transform .3s cubic-bezier(.4,0,.2,1); }
 .slider-pane { width: 50%; flex-shrink: 0; box-sizing: border-box; }
 .topic-grid { display: flex; flex-direction: column; gap: 16px; }
 .board-container { max-width: 680px; margin: 0 auto; }
-.topic-title { font-size: 16px; margin-top: 0; margin-bottom: 8px; color: #0f172a; font-weight: 600; }
-.topic-meta { display: flex; gap: 10px; color: #94a3b8; font-size: 12px; margin-bottom: 12px; }
-
-
-/* ==========================================
-   8. ポップアップ（モーダル）
-   ========================================== */
-.modal-overlay { 
-    display: none; 
-    position: fixed; 
-    top: 0; left: 0; width: 100%; height: 100%; 
-    background-color: rgba(15, 23, 42, 0.4); 
-    backdrop-filter: blur(4px); 
-    z-index: 2000;
-    justify-content: center; 
-    align-items: center; 
-}
+.topic-title { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: var(--kpmg-text-strong); }
+.topic-meta { display: flex; gap: 10px; margin-bottom: 12px; color: #94a3b8; font-size: 12px; }
+.modal-overlay { display: none; position: fixed; inset: 0; z-index: 2000; justify-content: center; align-items: center; background: rgba(15,23,42,.4); backdrop-filter: blur(4px); }
 .modal-overlay.is-active { display: flex; }
-.modal-content { width: 100%; max-width: 460px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border-radius: 16px; padding: 24px; color: #1e293b; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; }
-.modal-header h3 { font-size: 18px; margin: 0; color: #00338D; font-weight: 600; }
-.modal-close-x { background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; transition: color 0.2s; }
+.modal-content { width: min(460px, calc(100% - 24px)); padding: 24px; border: 1px solid var(--kpmg-border); border-radius: 16px; background: #fff; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1); color: var(--kpmg-text); }
+.modal-content--large { width: min(760px, calc(100% - 24px)); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; }
+.modal-header h3 { margin: 0; font-size: 18px; font-weight: 600; color: var(--kpmg-navy); }
+.modal-close-x { border: none; background: none; color: #94a3b8; font-size: 24px; cursor: pointer; transition: color .2s; }
 .modal-close-x:hover { color: #475569; }
-
-.form-group { margin-bottom: 14px; }
-.form-group-row { display: flex; gap: 10px; margin-bottom: 14px; }
-.form-group-row > div { flex: 1; }
-.form-group label, .form-group-row label { display: block; font-size: 13px; color: #475569; margin-bottom: 6px; font-weight: bold; }
-
+.success-msg, .error-msg { margin-bottom: 16px; padding: 10px; border-radius: 6px; text-align: center; font-size: 13px; font-weight: 600; }
+.success-msg { border: 1px solid var(--kpmg-blue); color: var(--kpmg-navy); background: rgba(0,94,184,.04); }
+.error-msg { border: 1px solid #cbd5e1; color: var(--kpmg-muted); background: var(--kpmg-surface); }
+.no-bets-text, .empty-text { padding: 32px 0; text-align: center; color: var(--kpmg-muted); }
+.betting-status-label { font-weight: 600; }
+.meta-author { color: #475569; }
+.meta-divider { color: #cbd5e1; }
+.status-text-closed { color: #64748b; }
+.bet-odds-closed { display: inline-flex; align-items: center; gap: 4px; }
+.badge-correct-text-compact { margin-left: 4px; color: #ea580c; font-weight: 700; }
+.manage-topic-result { color: #475569; font-weight: 500; }
+.manage-topic-result-value { color: #ea580c; }
+.form-submit-wrap { margin-top: 16px; }
 
 /* ==========================================
-   9. 👍 リアクション ＆ ユーティリティ
+   8. ランキング・管理モーダル
    ========================================== */
-.reaction-wrapper { position: relative; display: inline-block; }
-.reaction-popover {
-    display: none; position: absolute; bottom: 125%; right: 0; width: 180px;
-    background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08); z-index: 10; padding: 10px;
-    animation: fadeIn 0.15s ease-out;
-}
-.reaction-wrapper:hover .reaction-popover { display: block; }
-.popover-title { font-size: 11px; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px; }
-.popover-user-list { list-style: none; padding: 0; margin: 0; max-height: 120px; overflow-y: auto; }
-.popover-user-list li { font-size: 12px; color: #334155; padding: 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ranking-card { overflow: hidden; border: 1px solid #cbd5e1; border-radius: 8px; }
+.ranking-toggle-wrapper { width: 100%; }
+.ranking-toggle-wrapper summary::-webkit-details-marker { display: none; }
+.ranking-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid transparent; background: var(--kpmg-surface); cursor: pointer; list-style: none; user-select: none; }
+.ranking-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; color: var(--kpmg-navy); }
+.ranking-toggle-wrapper[open] .toggle-arrow { transform: rotate(90deg); }
+.ranking-toggle-wrapper[open] .ranking-summary { border-bottom-color: var(--kpmg-border); }
+.ranking-body { padding: 0; border-top: 1px solid var(--kpmg-border); background: #fff; }
+.ranking-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ranking-table-head { border-bottom: 2px solid #cbd5e1; background: #f1f5f9; text-align: left; }
+.ranking-col-rank { width: 80px; padding: 10px 16px; }
+.ranking-col-user, .ranking-col-point { padding: 10px 16px; }
+.ranking-col-point { width: 150px; text-align: right; }
+.ranking-row { border-bottom: 1px solid #e2e8f0; }
+.ranking-row-active { background: #fef08a !important; font-weight: 700; }
+.ranking-cell { padding: 12px 16px; }
+.ranking-cell-point { text-align: right; font-variant-numeric: tabular-nums; }
+.ranking-self-label { font-size: 11px; color: var(--kpmg-muted); }
+.ranking-empty { padding: 16px; text-align: center; color: var(--kpmg-muted); }
+.manage-topic-list { display: flex; flex-direction: column; gap: 16px; max-height: 70vh; overflow-y: auto; padding: 4px; }
+.manage-topic-item { padding: 16px; border: 1px solid var(--kpmg-border); border-radius: 8px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.manage-topic-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.manage-topic-title { display: block; margin-bottom: 4px; font-size: 16px; color: #1e293b; }
+.manage-topic-date { font-size: 12px; color: var(--kpmg-muted); }
+.topic-state-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.topic-state-badge-closed, .topic-state-badge-pending { background: #fff7ed; color: #ea580c; }
+.topic-state-badge-open { background: #eff6ff; color: #2563eb; }
+.manage-topic-body { margin-top: 8px; padding: 12px; border-radius: 6px; background: var(--kpmg-surface); font-size: 14px; }
+.manage-topic-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.manage-topic-hint { font-size: 13px; color: var(--kpmg-muted); }
+.inline-form { margin: 0; }
+.result-select-form { margin: 0; }
+.result-select-label { display: block; margin-bottom: 8px; font-weight: 600; color: #334155; }
+.result-options-group { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; }
+.result-radio-label { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; cursor: pointer; }
+.result-radio-label input { cursor: pointer; }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+/* ==========================================
+   9. 引用・検索・メンション
+   ========================================== */
+.shared-topic-card { margin: 12px 0 4px; padding: 12px 16px; border: 1px solid #cbd5e1; border-left: 4px solid #94a3b8; border-radius: 8px; background: #f1f5f9 !important; transition: all .2s ease; }
+.shared-topic-card:hover { border-color: #64748b; background: #e2e8f0 !important; }
+.shared-topic-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.quote-badge { padding: 2px 6px; border-radius: 4px; background: #64748b !important; color: #fff !important; font-size: 10px !important; font-weight: 700 !important; letter-spacing: .05em; }
+.quote-deadline { font-size: 11px !important; color: var(--kpmg-muted) !important; }
+.shared-topic-title { display: block; margin-bottom: 4px; font-size: 14px; color: #334155; line-height: 1.4; }
+.shared-topic-description { margin-bottom: 10px; font-size: 12px; color: #475569; line-height: 1.5; }
+.quote-link-btn { display: inline-block; padding: 4px 12px; border: 1px solid #475569; border-radius: 4px; background: #475569 !important; color: #fff !important; font-size: 11px; text-decoration: none; }
+.quote-link-btn:hover { border-color: #334155; background: #334155 !important; }
+.chat-meta-layout { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 8px; border-top: 1px dashed var(--kpmg-border); }
+.chat-meta-layout .meta-date { display: inline-flex; align-items: center; font-size: 12px; color: var(--kpmg-muted); line-height: 1; }
+.chat-meta-layout .inline-form { display: inline-flex; align-items: center; margin: 0 !important; }
+.search-box-container { margin-bottom: 24px; padding: 0; }
+.search-form { display: flex; flex-direction: row; align-items: center; gap: 10px; width: 100%; }
+.search-input-wrap { position: relative; display: flex; align-items: center; flex: 1; }
+.search-input { width: 100% !important; height: 42px !important; padding: 0 40px 0 14px !important; margin: 0 !important; box-sizing: border-box !important; }
+.search-submit-btn { height: 42px !important; flex-shrink: 0 !important; padding: 0 24px !important; font-size: 14px !important; white-space: nowrap !important; box-sizing: border-box !important; }
+.search-clear-btn { position: absolute; right: 12px; z-index: 5; font-size: 20px; color: #94a3b8; text-decoration: none; cursor: pointer; line-height: 1; }
+.search-clear-btn:hover { color: #475569; }
+.search-result-notify { margin: 10px 0 0; font-size: 13px; color: var(--kpmg-muted); }
+.search-result-notify strong { color: var(--kpmg-navy); }
+.chat-message-text { white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
+.chat-message-text .mention-tag { display: inline-block; margin: 0 2px; padding: 2px 7px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-weight: 700; }
+.mention-suggestion-box { position: absolute; bottom: 100%; left: 0; z-index: 1000; width: 200px; max-height: 150px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.mention-item { padding: 8px 12px; font-size: 13px; color: #334155; cursor: pointer; transition: background-color .2s; }
+.mention-item:hover { background: #eff6ff; color: #1d4ed8; font-weight: 500; }
 
-.success-msg, .error-msg { padding: 10px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; text-align: center; font-weight: 600; }
-.success-msg { border: 1px solid #005EB8; color: #00338D; background: rgba(0, 94, 184, 0.04); }
-.error-msg   { border: 1px solid #cbd5e1; color: #64748b; background: #f8fafc; }
-
-/* ==========================================================================
-   引用お題（完全な灰色基調デザイン）
-   ========================================================================== */
-
-/* 1. 引用部分全体のコンテナ */
-.shared-topic-card {
-    background-color: #f1f5f9 !important; /* ほんのり濃いめの落ち着いたグレー背景 */
-    border: 1px solid #cbd5e1 !important;  /* 全体を囲むシックなグレーの線 */
-    border-left: 4px solid #94a3b8 !important; /* 左側の線も落ち着いたミディアムグレーに統一 */
-    border-radius: 8px !important;         /* 角を丸めて上品に */
-    padding: 12px 16px !important;         /* 内側の余白 */
-    margin: 12px 0 4px 0 !important;       /* メッセージ本文との間のスキマ */
-    transition: all 0.2s ease;
-}
-
-/* マウスホバー時に少しだけ枠線と背景を濃くして立体感を出す */
-.shared-topic-card:hover {
-    background-color: #e2e8f0 !important;
-    border-color: #64748b !important;
-}
-
-/* 2. 引用のヘッダー部分（バッジと期限） */
-.shared-topic-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
-}
-
-/* 「引用お題」のバッジ（少し濃いめのグレーで文字を白に） */
-.quote-badge {
-    background-color: #64748b !important;
-    color: #ffffff !important;
-    font-size: 10px !important;
-    font-weight: bold !important;
-    padding: 2px 6px !important;
-    border-radius: 4px !important;
-    letter-spacing: 0.05em;
-}
-
-/* 期限のテキスト */
-.quote-deadline {
-    font-size: 11px !important;
-    color: #64748b !important;
-}
-
-/* 3. 引用内のお題タイトル */
-.shared-topic-title {
-    display: block !important;
-    font-size: 14px !important;
-    color: #334155 !important; /* 真っ黒ではなくダークグレー */
-    margin-bottom: 4px !important;
-    line-height: 1.4 !important;
-}
-
-/* 4. 引用内の説明文 */
-.shared-topic-description {
-    font-size: 12px !important;
-    color: #475569 !important; /* ミディアムグレー */
-    margin-bottom: 10px !important;
-    line-height: 1.5 !important;
-}
-
-/* 5. 「このお題に賭ける ➔」ボタンもグレー基調に変更 */
-.quote-link-btn {
-    background-color: #475569 !important; /* チャコールグレー */
-    border-color: #475569 !important;
-    color: #ffffff !important;
-    padding: 4px 12px !important;
-    font-size: 11px !important;
-    border-radius: 4px !important;
-    display: inline-block !important;
-    text-decoration: none;
-}
-
-.quote-link-btn:hover {
-    background-color: #334155 !important; /* ホバーでさらに濃く */
-    border-color: #334155 !important;
-}
-
-/* ==========================================================================
-   投稿カード最下部（時間といいね）の配置調整
-   ========================================================================== */
-
-/* 時間といいねボタンを包む親コンテナを横並び＆上下中央揃えにする */
-.chat-meta-layout {
-    display: flex !important;
-    justify-content: space-between !important; /* 時間を左、いいねを右に端寄せ */
-    align-items: center !important;         /* 縦方向の高さをピッタリ揃える（超重要） */
-    margin-top: 14px !important;            /* 引用カードや本文との間に適度な隙間を作る */
-    padding-top: 8px !important;            /* 上部に薄い境界線を入れる場合はここ */
-    border-top: 1px dashed #e2e8f0;         /* 任意：メッセージ部分との区切り（不要なら削除してください） */
-}
-
-/* 時間表示のテキストの高さ調整 */
-.chat-meta-layout .meta-date {
-    font-size: 12px !important;
-    color: #64748b !important;
-    display: inline-flex !important;
-    align-items: center !important;         /* 時計絵文字と文字の高さも揃える */
-    line-height: 1 !important;              /* 行高によるズレを防止 */
-}
-
-/* 反応ボタンまわりのラッパーのズレ防止 */
-.reaction-wrapper {
-    display: inline-flex !important;
-    align-items: center !important;         /* ボタンの縦位置を固定 */
-    position: relative;                     /* ポップオーバーの基準位置 */
-}
-
-/* いいね！ボタン自体の余計なマージンをリセット */
-.reaction-trigger-btn {
-    margin: 0 !important;
-    padding: 6px 12px !important;           /* ボタンの内側余白を整えてスッキリさせる */
-    line-height: 1.2 !important;            /* ボタン内テキストの縦中央揃え */
-    display: inline-flex !important;
-    align-items: center !important;
-}
-
-/* フォームの隙間によるズレを防止 */
-.chat-meta-layout .inline-form {
-    margin: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-}
-
-/* ==========================================================================
-   10. 🔍 検索機能専用スタイル（1行固定版に修正）
-   ========================================================================== */
-
-/* 検索窓全体のコンテナ */
-.search-box-container {
-    margin-bottom: 24px;
-    padding: 0;
-}
-
-/* フォームを1行に絶対固定する設定 */
-.search-form {
-    display: flex !important;
-    flex-direction: row !important; /* 絶対に縦並びにさせない */
-    gap: 10px !important;
-    align-items: center !important;
-    width: 100% !important;
-}
-
-/* 入力欄のラッパー */
-.search-input-wrap {
-    position: relative !important;
-    flex: 1 !important; /* 検索ボタン以外の横幅を限界まで広げる */
-    display: flex !important;
-    align-items: center !important;
-}
-
-/* 検索入力欄（width: 100% の競合をこれで上書き解決） */
-.search-input {
-    width: 100% !important; /* ラッパーの中だけで100% */
-    height: 42px !important;
-    padding: 0 40px 0 14px !important;
-    margin: 0 !important;
-    box-sizing: border-box !important;
-}
-
-/* 検索実行ボタン（勝手に縮んだり2行目に行かないように固定） */
-.search-submit-btn {
-    height: 42px !important;
-    white-space: nowrap !important; /* 文字の折り返しを絶対禁止 */
-    flex-shrink: 0 !important;     /* ボタンが潰れるのを絶対禁止 */
-    padding: 0 24px !important;
-    font-size: 14px !important;
-    box-sizing: border-box !important;
-}
-
-/* 入力欄の中にある「×」クリアボタン */
-.search-clear-btn {
-    position: absolute !important;
-    right: 12px !important;
-    font-size: 20px !important;
-    color: #94a3b8 !important;
-    text-decoration: none !important;
-    cursor: pointer !important;
-    line-height: 1 !important;
-    z-index: 5 !important;
-}
-.search-clear-btn:hover {
-    color: #475569 !important;
-}
-
-/* 検索結果の件数表示テキスト */
-.search-result-notify {
-    margin-top: 10px !important;
-    margin-bottom: 0 !important;
-    font-size: 13px !important;
-    color: #64748b !important;
-}
-.search-result-notify strong {
-    color: #00338D !important;
-}
-
-
-.chat-message-text {
-    white-space: pre-wrap;
-    word-break: break-word;
-    line-height: 1.6;
-}
-
-.chat-message-text .mention-tag {
-    display: inline-block;
-    margin: 0 2px;
-    padding: 2px 7px;
-    border-radius: 999px;
-    background: #dbeafe;
-    color: #1d4ed8;
-    font-weight: 700;
-}
-
-/* メンションレコメンドの枠 */
-.mention-suggestion-box {
-    position: absolute;
-    bottom: 100%; /* 入力欄の上にフワッと出す（下に出したい場合は top: 100%） */
-    left: 0;
-    z-index: 1000;
-    background: white;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    max-height: 150px;
-    overflow-y: auto;
-    width: 200px;
-}
-
-/* ユーザー候補の1行 */
-.mention-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 13px;
-    color: #334155;
-    transition: background-color 0.2s;
-}
-
-/* マウスを乗せたとき */
-.mention-item:hover {
-    background-color: #eff6ff;
-    color: #1d4ed8;
-    font-weight: 500;
-}
+/* ==========================================
+   10. アニメーション・レスポンシブ
+   ========================================== */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 560px) { .betting-summary-container { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
+@media (max-width: 520px) { .option-box { flex-direction: column; align-items: stretch; gap: 12px; } .option-info-zone { justify-content: space-between; } .bet-action-form { width: 100%; justify-content: space-between; } .bet-input-pt { flex: 1; } }
+@media (max-width: 600px) { .topic-grid-closed { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .form-group-row { grid-template-columns: 1fr; } .manage-topic-header { flex-direction: column; } }
