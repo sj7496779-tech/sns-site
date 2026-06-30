@@ -3,6 +3,10 @@ ignored_files/
 
 # Python environment and local database
 myenv/
+.venv/
+.env
 db.sqlite3
 __pycache__/
 *.py[cod]
+*.log
+.DS_Store
