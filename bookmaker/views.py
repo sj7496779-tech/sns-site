@@ -2,8 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction
-from django.db.models import Q
+from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction, Reply
+from django.db.models import Q, Prefetch
 from django.contrib.auth.models import User
 
 # ==========================================
@@ -164,8 +164,42 @@ def create_chat(request):
                 except Topic.DoesNotExist:
                     pass 
 
+            if request.FILES.get('chat_image'):
+                chat.image = request.FILES['chat_image']
+
             chat.save()
             
+    return redirect('top_page')
+
+
+# ==========================================
+# 3-A-3. 掲示板：投稿への返信処理
+# ==========================================
+@login_required
+def create_reply(request, chat_id):
+    if request.method == 'POST':
+        text = request.POST.get('reply_text', '').strip()
+        if text:
+            chat = get_object_or_404(Chat, pk=chat_id)
+            Reply.objects.create(uid=request.user, chat=chat, text=text)
+
+    return redirect('top_page')
+
+
+# ==========================================
+# 3-A-2. 掲示板：投稿削除処理
+# ==========================================
+@login_required
+def delete_chat(request, chat_id):
+    if request.method == 'POST':
+        chat = get_object_or_404(Chat, pk=chat_id)
+        if chat.uid != request.user:
+            messages.error(request, 'この投稿は削除できません。')
+            return redirect('top_page')
+
+        chat.delete()
+        messages.success(request, '投稿を削除しました。')
+
     return redirect('top_page')
 
 
@@ -177,7 +211,11 @@ def top_board(request):
     search_query = request.GET.get('q', '').strip()  # 前後の余計な空白を消す
 
     # 💡「.select_related('shared_topic', 'uid')」でユーザーとお題データを一括取得して高速化
-    chats_queryset = Chat.objects.all().select_related('shared_topic', 'uid').order_by('-time')
+    replies_prefetch = Prefetch(
+        'replies',
+        queryset=Reply.objects.select_related('uid', 'parent').prefetch_related('child_replies__uid'),
+    )
+    chats_queryset = Chat.objects.all().select_related('shared_topic', 'uid').prefetch_related(replies_prefetch).order_by('-time')
 
     # 🔍 検索ワードがある場合、Python側で「含まれているか」をチェック
     if search_query:
@@ -204,6 +242,13 @@ def top_board(request):
     else:
         # 検索キーワードがない（通常アクセス）の時は、全件をそのまま使う
         chats = chats_queryset
+    
+    for chat in chats:
+        chat.top_replies = sorted(
+            [reply for reply in chat.replies.all() if reply.parent_id is None],
+            key=lambda r: r.time
+        )
+        chat.reply_count = len(chat.top_replies)
     
     # 💡投稿フォームのドロップダウンに表示するため、現在受付中のお題リストを取得
     active_topics = Topic.objects.filter(
