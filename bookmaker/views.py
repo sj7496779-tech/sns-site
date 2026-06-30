@@ -118,7 +118,7 @@ def topic_detail(request, topic_id):
         bet.save()
 
         # ─── 🚨 【追加】高額ベット時の掲示板自動投稿ロジック ───
-        HIGH_BET_THRESHOLD = 1000  # 💡 何ポイント以上を高額とするか設定（例: 500pt）
+        HIGH_BET_THRESHOLD = 3000  # 💡 何ポイント以上を高額とするか設定（例: 500pt）
         
         if bet_point >= HIGH_BET_THRESHOLD:
             try:
