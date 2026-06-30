@@ -75,7 +75,7 @@
 
     <div class="topic-grid board-container">
         {% for chat in chats %}
-            <div class="card topic-card border-kpmg-blue margin-bottom-md">
+            <div id="chat-{{ chat.chatid }}"class="card topic-card border-kpmg-blue margin-bottom-md">
                 <div class="chat-content">
                     <p class="topic-detail chat-text-layout">
                         <strong class="chat-user-name">{{ chat.uid.username }}</strong>: {{ chat.text }}

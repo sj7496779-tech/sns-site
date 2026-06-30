@@ -5,6 +5,7 @@ from django.utils import timezone
 from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 # ==========================================
 # 1. お題の一覧画面 ＆ 新規投稿処理
@@ -236,6 +237,9 @@ def toggle_reaction(request, chat_id):
         else:
             # なければ、新しくリアクションを「登録（保存）」する
             Reaction.objects.create(uid=request.user, chatid=chat)
+        
+        redirect_url = reverse('top_page') + f'#chat-{chat.chatid}'
+        return redirect(redirect_url)
             
     # 処理が終わったら元の掲示板トップに戻る
     return redirect('top_page')
