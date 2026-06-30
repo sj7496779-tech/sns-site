@@ -53,7 +53,11 @@
             <form method="POST" action="{% url 'create_chat' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="form-group">
-                    <textarea name="chat_text" placeholder="今なにしてる？" required rows="4" class="chat-textarea"></textarea>
+                    <textarea name="chat_text" id="chat_text" placeholder="メッセージを入力..." required rows="4" class="chat-textarea"></textarea>
+                </div>
+
+                <div style="position: relative;">
+                    <div id="mention-list" class="mention-suggestion-box" style="display: none;"></div>
                 </div>
 
                 <div class="form-group margin-top-md">
@@ -227,6 +231,10 @@
 </body>
 
 <script>
+    function renderMentionTags(text) {
+        return text.replace(/@([\w\u3040-\u30ff\u4e00-\u9fff]+)/g, '<span class="mention-tag">@$1</span>');
+    }
+
     const chatModal = document.getElementById('chatModal');
     const openChatBtn = document.getElementById('openChatModalBtn');
     const closeChatBtn = document.getElementById('closeChatModalBtn');
@@ -235,6 +243,78 @@
     closeChatBtn.addEventListener('click', () => { chatModal.classList.remove('is-active'); });
     window.addEventListener('click', (e) => {
         if (e.target === chatModal) { chatModal.classList.remove('is-active'); }
+    });
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.chat-message-text').forEach(el => {
+            el.innerHTML = renderMentionTags(el.textContent || '');
+        });
+
+        const textarea = document.getElementById('chat_text');
+        const mentionList = document.getElementById('mention-list');
+        let allUsers = [];
+
+        if (!textarea || !mentionList) return;
+
+        fetch('/api/users/')
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load users');
+                return res.json();
+            })
+            .then(data => {
+                allUsers = Array.isArray(data.users) ? data.users : [];
+            })
+            .catch(() => {
+                allUsers = [];
+            });
+
+        textarea.addEventListener('input', () => {
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart ?? text.length;
+            const textBeforeCursor = text.slice(0, cursorPosition);
+            const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
+
+            if (mentionMatch) {
+                const query = mentionMatch[1].toLowerCase();
+                const filtered = allUsers.filter(user => user.toLowerCase().includes(query));
+
+                if (filtered.length > 0) {
+                    mentionList.innerHTML = filtered.map(user => 
+                        `<div class="mention-item" data-username="${user}">@${user}</div>`
+                    ).join('');
+                    mentionList.style.display = 'block';
+                } else {
+                    mentionList.style.display = 'none';
+                }
+            } else {
+                mentionList.style.display = 'none';
+            }
+        });
+
+        mentionList.addEventListener('click', (e) => {
+            const item = e.target.closest('.mention-item');
+            if (!item) return;
+
+            const username = item.getAttribute('data-username');
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart ?? text.length;
+            const textBeforeCursor = text.slice(0, cursorPosition);
+            const newTextBefore = textBeforeCursor.replace(/@([^\s@]*)$/, `@${username} `);
+            const textAfterCursor = text.slice(cursorPosition);
+
+            textarea.value = newTextBefore + textAfterCursor;
+            const newCursor = newTextBefore.length;
+            textarea.focus();
+            textarea.setSelectionRange(newCursor, newCursor);
+            mentionList.style.display = 'none';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target !== textarea && e.target !== mentionList) {
+                mentionList.style.display = 'none';
+            }
+        });
     });
 </script>
 </html>

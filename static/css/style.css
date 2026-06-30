@@ -77,23 +77,40 @@ h1, h2, h3, strong {
 }
 
 /* 📦 共通カードコンポーネント */
+/* 📦 共通カードコンポーネント（下線アクセント） */
 .card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
+    border-bottom: 4px solid #005EB8; /* KPMG Medium Blue アクセント */
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    transition: box-shadow 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
 }
 
+/* 📌 お題専用カード（左線なし・外枠フォーカス） */
 .topic-card {
-    border-left: 4px solid #005EB8; /* KPMG Medium Blue アクセント */
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0; /* 初期状態はシンプルな薄い枠線 */
+    border-radius: 12px;       /* .cardと統一感を持たせるため12pxに調整 */
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.topic-card:hover {
+    transform: translateY(-2px);
+    /* 👇 ホバーした時だけ、外枠が KPMG Blue に綺麗に変化します */
+    border-color: #005EB8; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
 /* 🖱️ ボタンパーツ */
 .btn {
     color: #ffffff;
@@ -822,4 +839,52 @@ textarea { resize: none; }
 }
 .search-result-notify strong {
     color: #00338D !important;
+}
+
+
+.chat-message-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+}
+
+.chat-message-text .mention-tag {
+    display: inline-block;
+    margin: 0 2px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+/* メンションレコメンドの枠 */
+.mention-suggestion-box {
+    position: absolute;
+    bottom: 100%; /* 入力欄の上にフワッと出す（下に出したい場合は top: 100%） */
+    left: 0;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-height: 150px;
+    overflow-y: auto;
+    width: 200px;
+}
+
+/* ユーザー候補の1行 */
+.mention-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #334155;
+    transition: background-color 0.2s;
+}
+
+/* マウスを乗せたとき */
+.mention-item:hover {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 500;
 }
