@@ -1,74 +1,52 @@
-import re
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.utils import timezone
-from .models import Topic, Option, Bet, AccountProfile, Chat, Reaction, Reply
-from django.db.models import Q, Prefetch
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Prefetch
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+from .models import AccountProfile, Bet, Chat, Option, Reaction, Reply, Topic
+from .services import (
+    create_topic_from_request,
+    get_active_topics_queryset,
+    get_or_create_profile,
+    get_ranking_list,
+    get_user_bets,
+    get_user_created_topics,
+)
 from django.urls import reverse
 
 # ==========================================
 # 1. お題の一覧画面 ＆ 新規投稿処理
 # ==========================================
 def topic_list(request):
-    # 【投稿処理】もし画面から「お題の投稿」フォームが送信されてきたら
     if request.method == 'POST' and 'topictitle' in request.POST:
-            
-        topictitle = request.POST.get('topictitle')
-        topicdetailtext = request.POST.get('topicdetailtext')
-        option1_text = request.POST.get('option1')
-        option2_text = request.POST.get('option2')
-        option3_text = request.POST.get('option3')
-        option4_text = request.POST.get('option4')
-        deadtime_raw = request.POST.get('deadtime')
+        if not request.user.is_authenticated:
+            messages.error(request, '投稿にはログインが必要です。')
+            return redirect('login')
 
-        topic = Topic.objects.create(
-            topictitle=topictitle,
-            topicdetailtext=topicdetailtext,
-            uid=request.user,  # 投稿者としてUserオブジェクトを紐付け
-            status='open',
-            deadtime=deadtime_raw
-        )
-
-        Option.objects.create(topicid=topic, text=option1_text)
-        Option.objects.create(topicid=topic, text=option2_text)
-
-        if option3_text and option3_text.strip():
-            Option.objects.create(topicid=topic, text=option3_text.strip())
-
-        if option4_text and option4_text.strip():
-            Option.objects.create(topicid=topic, text=option4_text.strip())
-
+        create_topic_from_request(request)
         messages.success(request, '新しいお題を公開しました！')
         return redirect('bookmaker:topic_list')
 
-    # 【表示処理】通常アクセス時
     topics = Topic.objects.all().order_by('-deadtime')
-    
     my_bets = None
     profile = None
     my_created_topics = None
-    
-    # 持ちポイントの高い順に全ユーザーのプロファイルを上位10名取得
-    ranking_list = AccountProfile.objects.all().order_by('-currentpoint')[:10]
-    
-    if request.user.is_authenticated:
-        my_bets = Bet.objects.filter(uid=request.user).select_related('optid__topicid')
-        my_created_topics = Topic.objects.filter(uid_id=request.user.id).prefetch_related('options').order_by('-topicid')
-        profile, created = AccountProfile.objects.get_or_create(
-            uid=request.user, 
-            defaults={'name': request.user.username, 'currentpoint': 1000}
-        )
 
-    # テンプレートに送るデータをまとめる
+    if request.user.is_authenticated:
+        my_bets = get_user_bets(request.user)
+        my_created_topics = get_user_created_topics(request.user)
+        profile = get_or_create_profile(request.user)
+
     context = {
         'topics': topics,
         'my_bets': my_bets,
         'profile': profile,
         'my_created_topics': my_created_topics,
-        'ranking_list': ranking_list, 
-        'now': timezone.now(), 
+        'ranking_list': get_ranking_list(),
+        'now': timezone.now(),
     }
     return render(request, 'bookmaker/index.html', context)
 
@@ -80,12 +58,7 @@ def topic_list(request):
 def topic_detail(request, topic_id):
     topic = get_object_or_404(Topic, topicid=topic_id)
     options = topic.options.all()
-    
-    # ログイン中のユーザーのプロフィールを取得
-    profile, created = AccountProfile.objects.get_or_create(
-        uid=request.user, 
-        defaults={'name': request.user.username, 'currentpoint': 3000}
-    )
+    profile = get_or_create_profile(request.user)
 
     if request.method == 'POST':
         opt_id = request.POST.get('option_id')
@@ -150,27 +123,24 @@ def topic_detail(request, topic_id):
 @login_required
 def create_chat(request):
     if request.method == 'POST':
-        chat_text = request.POST.get('chat_text')
-        topic_id = request.POST.get('topic_id')  # 💡画面から送られてきた「引用お題のID」を取得
+        chat_text = request.POST.get('chat_text', '').strip()
+        topic_id = request.POST.get('topic_id')
 
         if chat_text:
-            # データベースにチャットを保存
-            chat = Chat(
-                uid=request.user, 
-                text=chat_text
-            )
-            
+            chat = Chat(uid=request.user, text=chat_text)
+
             if topic_id:
                 try:
                     chat.shared_topic = Topic.objects.get(topicid=topic_id)
                 except Topic.DoesNotExist:
-                    pass 
+                    pass
 
-            if request.FILES.get('chat_image'):
-                chat.image = request.FILES['chat_image']
+            chat_image = request.FILES.get('chat_image')
+            if chat_image:
+                chat.image = chat_image
 
             chat.save()
-            
+
     return redirect('top_page')
 
 
@@ -208,58 +178,45 @@ def delete_chat(request, chat_id):
 # ==========================================
 # 3-B. 掲示板：画面を表示する処理（表示 ＆ %検索% 専用）
 # ==========================================
+def _filter_chats_by_query(chats_queryset, search_query):
+    if not search_query:
+        return list(chats_queryset)
+
+    query_lower = search_query.lower()
+    filtered_chats = []
+    for chat in chats_queryset:
+        in_text = query_lower in chat.text.lower()
+        in_username = query_lower in str(chat.uid.username).lower()
+        in_topic = bool(chat.shared_topic and chat.shared_topic.topictitle and query_lower in chat.shared_topic.topictitle.lower())
+
+        if in_text or in_username or in_topic:
+            filtered_chats.append(chat)
+
+    return filtered_chats
+
+
 @login_required
 def top_board(request):
-    search_query = request.GET.get('q', '').strip()  # 前後の余計な空白を消す
+    search_query = request.GET.get('q', '').strip()
 
-    # 💡「.select_related('shared_topic', 'uid')」でユーザーとお題データを一括取得して高速化
     replies_prefetch = Prefetch(
         'replies',
         queryset=Reply.objects.select_related('uid', 'parent').prefetch_related('child_replies__uid'),
     )
     chats_queryset = Chat.objects.all().select_related('shared_topic', 'uid').prefetch_related(replies_prefetch).order_by('-time')
+    chats = _filter_chats_by_query(chats_queryset, search_query)
 
-    # 🔍 検索ワードがある場合、Python側で「含まれているか」をチェック
-    if search_query:
-        query_lower = search_query.lower()
-        filtered_chats = []
-        for chat in chats_queryset:
-            # 1. 本文に含まれるか
-            in_text = query_lower in chat.text.lower()
-            
-            # 2. ユーザー名に含まれるか
-            in_username = query_lower in str(chat.uid.username).lower()
-            
-            # 3. 引用お題のタイトルに含まれるか（お題がある場合のみ）
-            in_topic = False
-            if chat.shared_topic and chat.shared_topic.topictitle:
-                in_topic = query_lower in chat.shared_topic.topictitle.lower()
-            
-            # いずれかに「含まれていれば」リストに残す
-            if in_text or in_username or in_topic:
-                filtered_chats.append(chat)
-        
-        # 絞り込んだ結果をテンプレートに渡す
-        chats = filtered_chats
-    else:
-        # 検索キーワードがない（通常アクセス）の時は、全件をそのまま使う
-        chats = chats_queryset
-    
     for chat in chats:
         chat.top_replies = sorted(
             [reply for reply in chat.replies.all() if reply.parent_id is None],
-            key=lambda r: r.time
+            key=lambda reply: reply.time,
         )
         chat.reply_count = len(chat.top_replies)
-    
-    # 💡投稿フォームのドロップダウンに表示するため、現在受付中のお題リストを取得
-    active_topics = Topic.objects.filter(
-        status='open', 
-        deadtime__gt=timezone.now()
-    ).order_by('-deadtime')
+
+    active_topics = get_active_topics_queryset()
 
     return render(request, 'top_board.html', {
-        'chats': chats, 
+        'chats': chats,
         'active_topics': active_topics,
         'search_query': search_query,
     })
@@ -271,18 +228,14 @@ def top_board(request):
 @login_required
 def toggle_reaction(request, chat_id):
     if request.method == 'POST':
-        # 該当するチャットを取得
-        chat = Chat.objects.get(pk=chat_id)
-        
-        # 自分がすでにこのチャットにリアクションしているか探す
-        existing_reaction = Reaction.objects.filter(uid=request.user, chatid=chat)
-        
-        if existing_reaction.exists():
-            # すでにリアクションがあれば、クリックで「解除（削除）」する
+        chat = get_object_or_404(Chat, pk=chat_id)
+        existing_reaction = Reaction.objects.filter(uid=request.user, chatid=chat).first()
+
+        if existing_reaction:
             existing_reaction.delete()
         else:
-            # なければ、新しくリアクションを「登録（保存）」する
             Reaction.objects.create(uid=request.user, chatid=chat)
+
         
         redirect_url = reverse('top_page') + f'#chat-{chat.chatid}'
         return redirect(redirect_url)
