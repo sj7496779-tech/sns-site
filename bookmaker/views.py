@@ -17,6 +17,16 @@ from .services import (
 )
 from django.urls import reverse
 
+
+def get_display_name(user: User) -> str:
+    if not user:
+        return ''
+
+    try:
+        return user.profile.name
+    except Exception:
+        return user.username
+
 # ==========================================
 # 1. お題の一覧画面 ＆ 新規投稿処理
 # ==========================================
@@ -31,6 +41,10 @@ def topic_list(request):
         return redirect('bookmaker:topic_list')
 
     topics = Topic.objects.all().order_by('-deadtime')
+    for topic in topics:
+        if topic.uid:
+            topic.display_author_name = get_display_name(topic.uid)
+
     my_bets = None
     profile = None
     my_created_topics = None
@@ -94,15 +108,15 @@ def topic_detail(request, topic_id):
         HIGH_BET_THRESHOLD = 3000  # 💡 何ポイント以上を高額とするか設定（例: 500pt）
         
         if bet_point >= HIGH_BET_THRESHOLD:
-            try:
-                system_user = User.objects.get(username='公式ディーラー')
-            except User.DoesNotExist:
-                system_user = request.user
+            system_user, created = User.objects.get_or_create(
+                username='公式ディーラー',
+                defaults={'is_active': False},
+            )
 
             auto_message = f"【高額ベット】{request.user.username}さんが「{option.text}」に {bet_point}ポイント 賭けました！"
             
             Chat.objects.create(
-                uid=system_user,      
+                uid=system_user,
                 text=auto_message,
                 shared_topic=topic
             )
@@ -187,9 +201,10 @@ def _filter_chats_by_query(chats_queryset, search_query):
     for chat in chats_queryset:
         in_text = query_lower in chat.text.lower()
         in_username = query_lower in str(chat.uid.username).lower()
+        in_display_name = query_lower in get_display_name(chat.uid).lower()
         in_topic = bool(chat.shared_topic and chat.shared_topic.topictitle and query_lower in chat.shared_topic.topictitle.lower())
 
-        if in_text or in_username or in_topic:
+        if in_text or in_username or in_display_name or in_topic:
             filtered_chats.append(chat)
 
     return filtered_chats
@@ -203,15 +218,21 @@ def top_board(request):
         'replies',
         queryset=Reply.objects.select_related('uid', 'parent').prefetch_related('child_replies__uid'),
     )
-    chats_queryset = Chat.objects.all().select_related('shared_topic', 'uid').prefetch_related(replies_prefetch).order_by('-time')
+    chats_queryset = Chat.objects.all().select_related('shared_topic', 'uid__profile').prefetch_related(replies_prefetch).order_by('-time')
     chats = _filter_chats_by_query(chats_queryset, search_query)
 
     for chat in chats:
+        chat.display_user_name = get_display_name(chat.uid)
         chat.top_replies = sorted(
             [reply for reply in chat.replies.all() if reply.parent_id is None],
             key=lambda reply: reply.time,
         )
         chat.reply_count = len(chat.top_replies)
+
+        for reply in chat.top_replies:
+            reply.display_user_name = get_display_name(reply.uid)
+            for child in reply.child_replies.all():
+                child.display_user_name = get_display_name(child.uid)
 
     active_topics = get_active_topics_queryset()
 
