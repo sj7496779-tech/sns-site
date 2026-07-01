@@ -61,6 +61,7 @@ def topic_list(request):
         'my_created_topics': my_created_topics,
         'ranking_list': get_ranking_list(),
         'now': timezone.now(),
+        'current_user_name': get_display_name(request.user) if request.user.is_authenticated else '',   # ヘッダーにユーザー名を表示する
     }
     return render(request, 'bookmaker/index.html', context)
 
@@ -240,6 +241,7 @@ def top_board(request):
         'chats': chats,
         'active_topics': active_topics,
         'search_query': search_query,
+        'current_user_name': get_display_name(request.user) if request.user.is_authenticated else '',   # ヘッダーにユーザー名を表示する
     })
 
 

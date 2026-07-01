@@ -15,6 +15,9 @@
             <h1 class="page-main-title">メイン掲示板</h1>
         </div>
         <div class="header-right">
+            {% if current_user_name %}
+                <span class="header-user-name">👤 {{ current_user_name }}</span>    # ユーザー名を表示する span を追加　（チャット画面）
+            {% endif %}
             <a href="{% url 'bookmaker:topic_list' %}" class="btn btn-primary bg-kpmg-blue">
                 ブックメーカーへ行く
             </a>
