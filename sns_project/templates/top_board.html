@@ -88,7 +88,7 @@
                 <div class="chat-content">
                     <div class="chat-header">
                         <p class="topic-detail chat-text-layout">
-                            <strong class="chat-user-name">{{ chat.uid.username }}</strong>: {{ chat.text }}
+                            <strong class="chat-user-name">{{ chat.uid.profile.name }}</strong>: {{ chat.text }}
                         </p>
                         {% if chat.uid == user %}
                         <form method="POST" action="{% url 'delete_chat' chat.chatid %}" class="delete-form">
@@ -132,7 +132,7 @@
                             {% for reply in chat.top_replies %}
                             <div class="reply-item reply-level-0">
                                 <div class="reply-meta">
-                                    <strong class="reply-user">👤 {{ reply.uid.username }}</strong>
+                                    <strong class="reply-user">👤 {{ reply.uid.profile.name }}</strong>
                                     <span class="reply-time">{{ reply.time|date:"Y-m-d H:i" }}</span>
                                 </div>
                                 <p class="reply-text">{{ reply.text }}</p>
@@ -144,7 +144,7 @@
                                         {% for child in reply.child_replies.all %}
                                         <div class="reply-item reply-level-1">
                                             <div class="reply-meta">
-                                                <strong class="reply-user">↳ {{ child.uid.username }}</strong>
+                                                <strong class="reply-user">↳ {{ child.uid.profile.name }}</strong>
                                                 <span class="reply-time">{{ child.time|date:"Y-m-d H:i" }}</span>
                                             </div>
                                             <p class="reply-text">{{ child.text }}</p>
@@ -160,7 +160,7 @@
                             {% for reply in chat.top_replies %}
                             <div class="reply-item reply-level-0">
                                 <div class="reply-meta">
-                                    <strong class="reply-user">👤 {{ reply.uid.username }}</strong>
+                                    <strong class="reply-user">👤 {{ reply.uid.profile.name }}</strong>
                                     <span class="reply-time">{{ reply.time|date:"Y-m-d H:i" }}</span>
                                 </div>
                                 <p class="reply-text">{{ reply.text }}</p>
@@ -172,7 +172,7 @@
                                         {% for child in reply.child_replies.all %}
                                         <div class="reply-item reply-level-1">
                                             <div class="reply-meta">
-                                                <strong class="reply-user">↳ {{ child.uid.username }}</strong>
+                                                <strong class="reply-user">↳ {{ child.uid.profile.name }}</strong>
                                                 <span class="reply-time">{{ child.time|date:"Y-m-d H:i" }}</span>
                                             </div>
                                             <p class="reply-text">{{ child.text }}</p>
