@@ -235,6 +235,14 @@ def toggle_reaction(request, chat_id):
             existing_reaction.delete()
         else:
             Reaction.objects.create(uid=request.user, chatid=chat)
+        
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            usernames = [r.uid.username for r in chat.reactions.select_related('uid').all()]
+            return JsonResponse({
+                'status': 'success',
+                'new_count': chat.reactions.count(), 
+                'usernames': usernames,
+                })
 
         
         redirect_url = reverse('top_page') + f'#chat-{chat.chatid}'

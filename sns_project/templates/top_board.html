@@ -18,7 +18,7 @@
             <a href="{% url 'bookmaker:topic_list' %}" class="btn btn-primary bg-kpmg-blue">
                 ブックメーカーへ行く
             </a>
-            <form method="POST" action="{% url 'logout' %}" class="inline-form">
+            <form method="POST" action="{% url 'logout' %}" class="inline-form ">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-secondary">ログアウト</button>
             </form>
@@ -84,7 +84,31 @@
 
     <div class="topic-grid board-container">
         {% for chat in chats %}
-            <div id="chat-{{ chat.chatid }}"class="card topic-card border-kpmg-blue margin-bottom-md">
+            <div id="chat-{{ chat.chatid }}" class="card topic-card border-kpmg-blue margin-bottom-md">
+                <!-- Meta (likes and time) -->
+                <div class="topic-meta chat-meta-layout">
+                    <span class="meta-date">🕒 {{ chat.time|date:"Y-m-d H:i" }}</span>
+
+                    <div class="reaction-wrapper">
+                        <form method="POST" action="{% url 'bookmaker:toggle_reaction' chat.chatid %}" class="inline-form reaction-form" data-chat-id="{{ chat.chatid }}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary small-btn reaction-trigger-btn">
+                                👍 いいね！ (<span class="reaction-count">{{ chat.reactions.count }}</span>)
+                            </button>
+                        </form>
+
+                        <div class="reaction-popover">
+                            <div class="popover-title">👍 いいねした人</div>
+                            <ul class="popover-user-list">
+                                {% for reaction in chat.reactions.all %}
+                                    <li>👤 {{ reaction.uid.username }}</li>
+                                {% empty %}
+                                    <li class="popover-empty">まだいいねはありません</li>
+                                {% endfor %}
+                            </ul>
+                            </div>
+                    </div>
+                </div>
                 <div class="chat-content">
                     <div class="chat-header">
                         <p class="topic-detail chat-text-layout">
@@ -206,90 +230,144 @@
 </body>
 
 <script>
+    // 1. メンション用の変換関数
     function renderMentionTags(text) {
         return text.replace(/@([\w\u3040-\u30ff\u4e00-\u9fff]+)/g, '<span class="mention-tag">@$1</span>');
     }
 
+    // 2. モーダルの制御（画面読み込みを待たずに設定可能）
     const chatModal = document.getElementById('chatModal');
     const openChatBtn = document.getElementById('openChatModalBtn');
     const closeChatBtn = document.getElementById('closeChatModalBtn');
 
-    openChatBtn.addEventListener('click', () => { chatModal.classList.add('is-active'); });
-    closeChatBtn.addEventListener('click', () => { chatModal.classList.remove('is-active'); });
+    if (openChatBtn && chatModal) {
+        openChatBtn.addEventListener('click', () => { chatModal.classList.add('is-active'); });
+    }
+    if (closeChatBtn && chatModal) {
+        closeChatBtn.addEventListener('click', () => { chatModal.classList.remove('is-active'); });
+    }
     window.addEventListener('click', (e) => {
-        if (e.target === chatModal) { chatModal.classList.remove('is-active'); }
+        if (chatModal && e.target === chatModal) { chatModal.classList.remove('is-active'); }
     });
 
-
+    // ─── 💡 すべてのHTML要素が読み込み終わった後に実行する処理 ───
     document.addEventListener('DOMContentLoaded', () => {
+        
+        // 【機能A】メンションタグの自動反映
         document.querySelectorAll('.chat-message-text').forEach(el => {
             el.innerHTML = renderMentionTags(el.textContent || '');
         });
 
+        // 【機能B】ユーザーメンションのサジェスト機能
         const textarea = document.getElementById('chat_text');
         const mentionList = document.getElementById('mention-list');
         let allUsers = [];
 
-        if (!textarea || !mentionList) return;
+        if (textarea && mentionList) {
+            fetch('/api/users/')
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load users');
+                    return res.json();
+                })
+                .then(data => {
+                    allUsers = Array.isArray(data.users) ? data.users : [];
+                })
+                .catch(() => {
+                    allUsers = [];
+                });
 
-        fetch('/api/users/')
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to load users');
-                return res.json();
-            })
-            .then(data => {
-                allUsers = Array.isArray(data.users) ? data.users : [];
-            })
-            .catch(() => {
-                allUsers = [];
-            });
+            textarea.addEventListener('input', () => {
+                const text = textarea.value;
+                const cursorPosition = textarea.selectionStart ?? text.length;
+                const textBeforeCursor = text.slice(0, cursorPosition);
+                const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
 
-        textarea.addEventListener('input', () => {
-            const text = textarea.value;
-            const cursorPosition = textarea.selectionStart ?? text.length;
-            const textBeforeCursor = text.slice(0, cursorPosition);
-            const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
+                if (mentionMatch) {
+                    const query = mentionMatch[1].toLowerCase();
+                    const filtered = allUsers.filter(user => user.toLowerCase().includes(query));
 
-            if (mentionMatch) {
-                const query = mentionMatch[1].toLowerCase();
-                const filtered = allUsers.filter(user => user.toLowerCase().includes(query));
-
-                if (filtered.length > 0) {
-                    mentionList.innerHTML = filtered.map(user => 
-                        `<div class="mention-item" data-username="${user}">@${user}</div>`
-                    ).join('');
-                    mentionList.style.display = 'block';
+                    if (filtered.length > 0) {
+                        mentionList.innerHTML = filtered.map(user => 
+                            `<div class="mention-item" data-username="${user}">@${user}</div>`
+                        ).join('');
+                        mentionList.style.display = 'block';
+                    } else {
+                        mentionList.style.display = 'none';
+                    }
                 } else {
                     mentionList.style.display = 'none';
                 }
-            } else {
+            });
+
+            mentionList.addEventListener('click', (e) => {
+                const item = e.target.closest('.mention-item');
+                if (!item) return;
+
+                const username = item.getAttribute('data-username');
+                const text = textarea.value;
+                const cursorPosition = textarea.selectionStart ?? text.length;
+                const textBeforeCursor = text.slice(0, cursorPosition);
+                const newTextBefore = textBeforeCursor.replace(/@([^\s@]*)$/, `@${username} `);
+                const textAfterCursor = text.slice(cursorPosition);
+
+                textarea.value = newTextBefore + textAfterCursor;
+                const newCursor = newTextBefore.length;
+                textarea.focus();
+                textarea.setSelectionRange(newCursor, newCursor);
                 mentionList.style.display = 'none';
-            }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (e.target !== textarea && e.target !== mentionList) {
+                    mentionList.style.display = 'none';
+                }
+            });
+        }
+
+        // 【機能C】いいね（リアクション）の非同期Ajax通信
+        document.querySelectorAll('.reaction-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+
+                const chatId = this.getAttribute('data-chat-id');
+                const url = this.getAttribute('action');
+                const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
+                const countSpan = this.querySelector('.reaction-count');
+                
+                const wrapper = this.closest('.reaction-wrapper');
+                const userListUl = wrapper ? wrapper.querySelector('.popover-user-list') : null;
+
+                if (!countSpan) return; 
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // ① いいね数の数字を更新
+                        countSpan.textContent = data.new_count;
+
+                        // ② ポップオーバー内のユーザー名リストをリアルタイムに書き換え
+                        if (userListUl) {
+                            if (data.usernames.length === 0) {
+                                userListUl.innerHTML = '<li class="popover-empty">まだいいねはありません</li>';
+                            } else {
+                                userListUl.innerHTML = data.usernames.map(username => {
+                                    return `<li>👤 ${username}</li>`;
+                                }).join('');
+                            }
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
         });
 
-        mentionList.addEventListener('click', (e) => {
-            const item = e.target.closest('.mention-item');
-            if (!item) return;
-
-            const username = item.getAttribute('data-username');
-            const text = textarea.value;
-            const cursorPosition = textarea.selectionStart ?? text.length;
-            const textBeforeCursor = text.slice(0, cursorPosition);
-            const newTextBefore = textBeforeCursor.replace(/@([^\s@]*)$/, `@${username} `);
-            const textAfterCursor = text.slice(cursorPosition);
-
-            textarea.value = newTextBefore + textAfterCursor;
-            const newCursor = newTextBefore.length;
-            textarea.focus();
-            textarea.setSelectionRange(newCursor, newCursor);
-            mentionList.style.display = 'none';
-        });
-
-        document.addEventListener('click', (e) => {
-            if (e.target !== textarea && e.target !== mentionList) {
-                mentionList.style.display = 'none';
-            }
-        });
-    });
+    }); 
 </script>
 </html>
