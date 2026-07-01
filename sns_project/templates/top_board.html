@@ -112,7 +112,8 @@
                 <div class="chat-content">
                     <div class="chat-header">
                         <p class="topic-detail chat-text-layout">
-                            <strong class="chat-user-name">{{ chat.display_user_name }}</strong>: {{ chat.text }}
+                            <strong class="chat-user-name">{{ chat.display_user_name }}</strong>: 
+                            <span class="chat-actual-text">{{ chat.text }}</span>
                         </p>
                         {% if chat.uid == user %}
                         <form method="POST" action="{% url 'delete_chat' chat.chatid %}" class="delete-form">
@@ -274,7 +275,7 @@
         
         // 【機能A】メンションタグの自動反映
         //画面上にあるすべてのチャットメッセージに対して、renderMentionTags関数を使ってメンション部分を強調表示する
-        document.querySelectorAll('.chat-message-text').forEach(el => {
+        document.querySelectorAll('.chat-actual-text').forEach(el => {
             el.innerHTML = renderMentionTags(el.textContent || '');
         });//querySelectorAll：指定したCSSセレクタに一致するすべての要素を取得する
         //cssセレクタ：HTML要素を選択するためのパターン。例えば、.class名はそのクラスを持つ要素を選択する
