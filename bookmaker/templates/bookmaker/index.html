@@ -387,10 +387,15 @@
     </div>
 
 <script>
-    // タブ切り替え（左右スライド制御）
+    //このコードが持つ機能
+    // 1. タブ切り替えの制御
+    // 2. 新規投稿ポップアップの制御
+    // 3. お題管理ポップアップの制御
+    // 4. 背景クリックでポップアップを閉じる処理
+    // 5. 自動払い戻し＆戦績サマリー計算
     const tabButtons = document.querySelectorAll('.tab-button');
     const topicSlider = document.getElementById('topicSlider');
-
+    // タブ切り替えの制御
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -405,15 +410,15 @@
         });
     });
 
-    // 1. 新規投稿ポップアップの制御
+    // 新規投稿ポップアップの制御
     const postModal = document.getElementById('postModal');
     const openPostBtn = document.getElementById('openModalBtn');
     const closePostBtn = document.getElementById('closeModalBtn');
-
+    
     openPostBtn.addEventListener('click', () => { postModal.classList.add('is-active'); });
     closePostBtn.addEventListener('click', () => { closePostBtn.parentElement.parentElement.parentElement.classList.remove('is-active'); });
 
-    // 2. お題管理ポップアップの制御
+    // お題管理ポップアップの制御
     const manageModal = document.getElementById('manageModal');
     const openManageBtn = document.getElementById('openManageModalBtn');
     const closeManageBtn = document.getElementById('closeManageModalBtn');
@@ -421,17 +426,17 @@
     openManageBtn.addEventListener('click', () => { manageModal.classList.add('is-active'); });
     closeManageBtn.addEventListener('click', () => { manageModal.classList.remove('is-active'); });
 
-    // 3. 背景クリックで閉じる処理
+    // 背景クリックでポップアップを閉じる処理
     window.addEventListener('click', (e) => {
         if (e.target === postModal) postModal.classList.remove('is-active');
         if (e.target === manageModal) manageModal.classList.remove('is-active');
     });
 
-    // 4. 自動払い戻し＆戦績サマリー計算
+    //  自動払い戻し＆戦績サマリー計算
     document.addEventListener("DOMContentLoaded", () => {
         let totalBet = 0;
         let totalPayout = 0;
-
+        
         document.querySelectorAll('.bet-history-table tbody .bet-item').forEach(item => {
             const betTotalEl = item.querySelector('.bet-point-total');
             if (!betTotalEl) return;
@@ -464,7 +469,8 @@
             const displayTotalBet = totalBet <= 0 ? [...document.querySelectorAll('.bet-point-total')].reduce((a, b) => a + parseInt(b.getAttribute('data-bet')), 0) : totalBet;
             totalBetSumEl.textContent = displayTotalBet;
             totalPayoutSumEl.textContent = totalPayout;
-
+            
+            // 通算回収率の計算と表示
             if (totalBet > 0) {
                 const rate = Math.round((totalPayout / totalBet) * 100);
                 recoveryRateEl.textContent = `${rate}%`;
