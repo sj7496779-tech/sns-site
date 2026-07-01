@@ -230,114 +230,171 @@
 </body>
 
 <script>
-    // 1. メンション用の変換関数
+    //1.メンション用の関数
+    //文字列の中から@ユーザー名という部分を見つけ出し、'<span class="mention-tag">@$1</span>'に変換
     function renderMentionTags(text) {
         return text.replace(/@([\w\u3040-\u30ff\u4e00-\u9fff]+)/g, '<span class="mention-tag">@$1</span>');
     }
+    ///@([\w\u3040-\u30ff\u4e00-\u9fff]+)/g
+    //正規表現：ユニコードで指定している
+    //ひらがな　カタカナ　英数字　漢字が一文字以上続いている塊を見つける
 
-    // 2. モーダルの制御（画面読み込みを待たずに設定可能）
+    //'<span class="mention-tag">@$1</span>'
+    //置換後の文字列。$1は正規表現で見つけたユーザー名の部分を指す
+    //cssでmention-tagクラスにスタイルを当てることで、メンション部分を強調表示できる
+
+    // 2. モーダル(ポップアップ画面のこと)の制御
     const chatModal = document.getElementById('chatModal');
     const openChatBtn = document.getElementById('openChatModalBtn');
     const closeChatBtn = document.getElementById('closeChatModalBtn');
 
-    if (openChatBtn && chatModal) {
+    //const：変数宣言
+    //getElementById：HTMLのid属性を持つ要素を取得する
+    //getElementById("HTMLで指定したid名")で、HTMLの要素を取得して変数に代入する
+    //chatModal：モーダルの画面本体
+    //openChatBtn：モーダルを開くボタン
+    //closeChatBtn：モーダルを閉じるボタン
+    //変数の中には、HTMLの要素そのものが入っているので、変数を使って要素に対して操作を行うことができる
+
+    if (openChatBtn && chatModal) { //&&：かつ 両方ちゃんと存在しているか
         openChatBtn.addEventListener('click', () => { chatModal.classList.add('is-active'); });
-    }
+    }//開くボタンがクリックされたら、モーダルにis-activeクラスを追加して表示する
+    //アロー関数という書き方
+    //addEventListener：イベントリスナー（イベントリスナー：要素に対するイベントを監視する関数）を追加する
     if (closeChatBtn && chatModal) {
         closeChatBtn.addEventListener('click', () => { chatModal.classList.remove('is-active'); });
-    }
+    }//閉じるボタンがクリックされたら、モーダルからis-activeクラスを削除して非表示にする
     window.addEventListener('click', (e) => {
         if (chatModal && e.target === chatModal) { chatModal.classList.remove('is-active'); }
-    });
+    });//モーダルの外側がクリックされたら、モーダルからis-activeクラスを削除して非表示にする
 
     // ─── 💡 すべてのHTML要素が読み込み終わった後に実行する処理 ───
     document.addEventListener('DOMContentLoaded', () => {
+        //DOMContentLoaded：ブラウザがHTMLを完全に読み込んだ後に起こるイベント
         
         // 【機能A】メンションタグの自動反映
+        //画面上にあるすべてのチャットメッセージに対して、renderMentionTags関数を使ってメンション部分を強調表示する
         document.querySelectorAll('.chat-message-text').forEach(el => {
             el.innerHTML = renderMentionTags(el.textContent || '');
-        });
+        });//querySelectorAll：指定したCSSセレクタに一致するすべての要素を取得する
+        //cssセレクタ：HTML要素を選択するためのパターン。例えば、.class名はそのクラスを持つ要素を選択する
+        //つまりここでは、class="chat-message-text"を持つすべての要素を取得している
+        //el(element)の中に入っているテキストコンテンツを取り出す
+        //||:論理和、もしel.textContentがnullやundefinedの場合は、空文字列''を使う
 
         // 【機能B】ユーザーメンションのサジェスト機能
         const textarea = document.getElementById('chat_text');
         const mentionList = document.getElementById('mention-list');
         let allUsers = [];
+        //チャット本文とメンションリストを取得し、全ユーザーのリストを格納する配列を用意する
 
-        if (textarea && mentionList) {
-            fetch('/api/users/')
-                .then(res => {
+        if (textarea && mentionList) {//両方存在していたら実行
+            fetch('/api/users/')//サーバーに対して、ユーザー一覧を取得するためのAPIリクエストを送信する
+                .then(res => {//res：サーバーからのレスポンスを受け取る
                     if (!res.ok) throw new Error('Failed to load users');
+                    //通信に失敗した場合はエラーを投げる
                     return res.json();
+                    //通信に成功したら、レスポンスをJSON形式に変換して次のthenに渡す
                 })
                 .then(data => {
                     allUsers = Array.isArray(data.users) ? data.users : [];
-                })
+                })//3項演算子：
+                //Array.isArray(data.users)がtrueならdata.usersを、falseなら空配列[]をallUsersに代入する
+                //Array.isArray(data.users)は、data.usersが配列かどうかを判定するメソッド
                 .catch(() => {
                     allUsers = [];
                 });
 
             textarea.addEventListener('input', () => {
-                const text = textarea.value;
+                //textareaに入力があったら実行
+                const text = textarea.value;//textareaの中の文字列を取得
                 const cursorPosition = textarea.selectionStart ?? text.length;
+                //textarea.selectionStartは、カーソルの位置を取得するプロパティ
+                //カーソル位置の特定
                 const textBeforeCursor = text.slice(0, cursorPosition);
+                //text.slice(0, cursorPosition)は、文字列の先頭からカーソル位置までの部分文字列を取得する
                 const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
+                //@([^\s@]*)$/は、正規表現で「@」に続く文字列を検索するパターン
 
-                if (mentionMatch) {
+                if (mentionMatch) {//mentionMatchがnullでなければ、つまり@に続く文字列があれば実行
                     const query = mentionMatch[1].toLowerCase();
+                    //@に続く文字を小文字に変換して、queryに代入する
                     const filtered = allUsers.filter(user => user.toLowerCase().includes(query));
+                    //allUsersから、queryを含むユーザーをフィルタリングする
 
-                    if (filtered.length > 0) {
+                    if (filtered.length > 0) {//検索に一致するユーザーが1人以上いれば実行
                         mentionList.innerHTML = filtered.map(user => 
                             `<div class="mention-item" data-username="${user}">@${user}</div>`
                         ).join('');
+                        //一致するユーザーをHTMLに変換して、mentionListに表示する
                         mentionList.style.display = 'block';
+                        //mentionListの表示をblockにすることで、サジェストリストを表示する
                     } else {
                         mentionList.style.display = 'none';
+                        //一致するユーザーがいなければ、サジェストリストを非表示にする
                     }
                 } else {
                     mentionList.style.display = 'none';
+                    //メンションの入力中でなければ、サジェストリストを非表示にする
                 }
             });
 
             mentionList.addEventListener('click', (e) => {
+                //mentionList内の要素がクリックされたら実行
                 const item = e.target.closest('.mention-item');
                 if (!item) return;
+                //リスト以外をクリックした場合は何もしない
 
                 const username = item.getAttribute('data-username');
+                //クリックされた要素から、data-username属性を取得する
                 const text = textarea.value;
                 const cursorPosition = textarea.selectionStart ?? text.length;
+                //カーソル位置の特定
                 const textBeforeCursor = text.slice(0, cursorPosition);
                 const newTextBefore = textBeforeCursor.replace(/@([^\s@]*)$/, `@${username} `);
                 const textAfterCursor = text.slice(cursorPosition);
+                //入力中のメンションをクリックされたユーザー名に置き換えるために変数に格納する
 
                 textarea.value = newTextBefore + textAfterCursor;
+                //textareaの値を更新することで、クリックされたユーザー名に置き換える
                 const newCursor = newTextBefore.length;
                 textarea.focus();
                 textarea.setSelectionRange(newCursor, newCursor);
+                //カーソル位置を置き換えた後の位置に移動する
                 mentionList.style.display = 'none';
+                //サジェストリストを非表示にする
             });
 
             document.addEventListener('click', (e) => {
                 if (e.target !== textarea && e.target !== mentionList) {
                     mentionList.style.display = 'none';
                 }
-            });
+            });//textareaとmentionList以外の場所がクリックされたら、サジェストリストを非表示にする
         }
 
-        // 【機能C】いいね（リアクション）の非同期Ajax通信
+        // 【機能C】いいね（リアクション）の非同期通信
         document.querySelectorAll('.reaction-form').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault(); 
+                //送信イベントをキャンセルする
 
                 const chatId = this.getAttribute('data-chat-id');
+                //data-chat-id属性からチャットIDを取得する
                 const url = this.getAttribute('action');
+                //
                 const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
+                //フォーム内のCSRFトークンを取得する
+                //CSRFトークン：Djangoが提供するセキュリティ機能で、フォーム送信時に不正なリクエストを防ぐためのトークン
                 const countSpan = this.querySelector('.reaction-count');
+                //いいね数を表示する<span>要素を取得する
                 
                 const wrapper = this.closest('.reaction-wrapper');
+                //closest('.reaction-wrapper')は、現在のフォーム要素から最も近い親要素である.reaction-wrapperクラスを持つ要素を取得する
+                //reaction-wrapperクラスは、いいねボタンなどをまとめる親要素のこと
                 const userListUl = wrapper ? wrapper.querySelector('.popover-user-list') : null;
+                //userListUlは、いいねしたユーザー名のリストを表示する<ul>要素を取得する
 
-                if (!countSpan) return; 
+                if (!countSpan) return; //いいねを表示する<span>要素が見つからなければ処理を中断する
 
                 fetch(url, {
                     method: 'POST',
@@ -346,13 +403,15 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
+                //fetch関数を使って、非同期通信でいいねの送信を行う
                 .then(response => response.json())
+                //サーバーからのレスポンスをJSON形式に変換する
                 .then(data => {
                     if (data.status === 'success') {
-                        // ① いいね数の数字を更新
                         countSpan.textContent = data.new_count;
+                        //サーバー側の処理が成功した場合、いいね数を更新する
 
-                        // ② ポップオーバー内のユーザー名リストをリアルタイムに書き換え
+                        //いいねしたユーザー名リストを更新する
                         if (userListUl) {
                             if (data.usernames.length === 0) {
                                 userListUl.innerHTML = '<li class="popover-empty">まだいいねはありません</li>';
@@ -365,6 +424,7 @@
                     }
                 })
                 .catch(error => console.error('Error:', error));
+                //通信エラーが発生した場合、コンソールにエラーメッセージを表示する
             });
         });
 
