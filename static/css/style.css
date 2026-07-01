@@ -73,6 +73,17 @@ h1, h2, h3, strong { color: var(--kpmg-text-strong); }
     align-items: center;
 }
 
+/* ヘッダーにユーザー名を表示 */
+.header-user-name {
+    padding: 8px 12px;
+    border: 1px solid var(--kpmg-border);
+    border-radius: 999px;
+    background: var(--kpmg-surface);
+    color: var(--kpmg-navy);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 /* 共通カードコンポーネント */
 .card {
   border-radius: 12px;
