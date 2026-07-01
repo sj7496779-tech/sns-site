@@ -131,7 +131,7 @@ def topic_detail(request, topic_id):
             )
 
             # 自動投稿の本文を作る。
-            auto_message = f"【高額ベット】{request.user.username}さんが「{option.text}」に {bet_point}ポイント 賭けました！"
+            auto_message = f"【高額ベット】@{request.user.username}さんが「{option.text}」に {bet_point}ポイント 賭けました！"
 
             # 投稿としてチャットを作成する。
             Chat.objects.create(
