@@ -1,11 +1,13 @@
-# admin.py の中身
+# Django の管理サイト機能を使うための import
 from django.contrib import admin
-from .models import AccountProfile, Topic, Option, Bet,Chat, Reaction
+# bookmaker アプリのモデルをインポートする
+from .models import AccountProfile, Topic, Option, Bet, Chat, Reaction, Reply
 
-# 管理画面からデータをいじれるように登録する
+# ここでは各モデルを管理画面に登録して、/admin から操作できるようにしています。
 admin.site.register(AccountProfile)
 admin.site.register(Topic)
 admin.site.register(Option)
 admin.site.register(Bet)
 admin.site.register(Chat)
 admin.site.register(Reaction)
+admin.site.register(Reply)

@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 
 
+# ユーザーごとのプロフィールを保持するモデル。
+# AccountProfile は User と1対1で紐づき、表示名とポイント残高を持ちます。
 class AccountProfile(models.Model):
     uid = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='profile')
     name = models.CharField(max_length=150)
@@ -12,6 +14,8 @@ class AccountProfile(models.Model):
         return self.name
 
 
+# お題を表すモデル。
+# ユーザーが作成し、複数の選択肢と賭けを持つことができます。
 class Topic(models.Model):
     topicid = models.AutoField(primary_key=True)
     topictitle = models.CharField(max_length=200)
@@ -25,13 +29,17 @@ class Topic(models.Model):
 
     @property
     def is_active(self):
+        # 受付中かつ期限が未来なら有効とみなす。
         return self.status != 'closed' and self.deadtime > timezone.now()
 
     @property
     def is_closed(self):
+        # 結果確定済み、または期限切れなら終了とみなす。
         return self.status == 'closed' or self.deadtime <= timezone.now()
 
 
+# お題の選択肢を表すモデル。
+# 1つのお題に複数の Option が紐づきます。
 class Option(models.Model):
     optid = models.AutoField(primary_key=True)
     text = models.CharField(max_length=100)
@@ -43,7 +51,9 @@ class Option(models.Model):
 
     @property
     def odds(self):
+        # この選択肢に賭けられたポイント合計
         current_option_points = sum(bet.betpoint for bet in self.bet_set.all())
+        # お題全体の賭けポイント合計
         total_topic_points = sum(
             sum(bet.betpoint for bet in option.bet_set.all())
             for option in self.topicid.options.all()
@@ -58,6 +68,8 @@ class Option(models.Model):
         return round(total_topic_points / current_option_points, 2)
 
 
+# ユーザーのベットを表すモデル。
+# 1人のユーザーは1つの選択肢に対して1つの Bet を持ちます。
 class Bet(models.Model):
     uid = models.ForeignKey(User, on_delete=models.CASCADE)
     optid = models.ForeignKey(Option, on_delete=models.CASCADE)
@@ -70,6 +82,8 @@ class Bet(models.Model):
         return f"{self.uid.username} -> {self.optid.text} ({self.betpoint}pt)"
 
 
+# 掲示板投稿を表すモデル。
+# テキストと画像、関連お題、投稿時間を保持します。
 class Chat(models.Model):
     chatid = models.AutoField(primary_key=True)
     uid = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chats')
@@ -88,6 +102,8 @@ class Chat(models.Model):
         return f"{self.uid.username}: {self.text[:10]}"
 
 
+# 投稿に対するリアクションを表すモデル。
+# 1ユーザー1投稿につき1つだけ保持されます。
 class Reaction(models.Model):
     reactionid = models.AutoField(primary_key=True)
     uid = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reactions')
@@ -102,6 +118,8 @@ class Reaction(models.Model):
         return f"{self.uid.username} reacted to Chat {self.chatid.chatid}"
 
 
+# 投稿への返信を表すモデル。
+# parent で親返信を持てる二段階のスレッド構造です。
 class Reply(models.Model):
     replyid = models.AutoField(primary_key=True)
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='replies')

@@ -11,6 +11,9 @@ import os
 
 from django.core.asgi import get_asgi_application
 
+# ASGI application entrypoint
+# - ASGI サーバーはこの callable を使って Django アプリを起動します。
+# - 非同期対応の WebSocket や HTTP リクエストの受け口になります。
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sns_project.settings')
 
 application = get_asgi_application()
