@@ -392,8 +392,8 @@ textarea { resize: none; }
 .search-clear-btn:hover { color: #475569; }
 .search-result-notify { margin: 10px 0 0; font-size: 13px; color: var(--kpmg-muted); }
 .search-result-notify strong { color: var(--kpmg-navy); }
-.chat-message-text { white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
-.chat-message-text .mention-tag { display: inline-block; margin: 0 2px; padding: 2px 7px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-weight: 700; }
+.chat-actual-text { white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
+.mention-tag { display: inline-block; margin: 0 2px; padding: 2px 7px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-weight: 700; }
 .mention-suggestion-box { position: absolute; bottom: 100%; left: 0; z-index: 1000; width: 200px; max-height: 150px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
 .mention-item { padding: 8px 12px; font-size: 13px; color: #334155; cursor: pointer; transition: background-color .2s; }
 .mention-item:hover { background: #eff6ff; color: #1d4ed8; font-weight: 500; }
