@@ -67,7 +67,7 @@
                                 <tr>
                                     <th>ステータス</th>
                                     <th>対象のお題</th>
-                                    <th>あなたの賭け</th>
+                                    <th>選択</th>
                                     <th class="num-col">オッズ</th>
                                     <th class="num-col">賭け金</th>
                                     <th class="num-col">払い戻し</th>
@@ -92,8 +92,10 @@
                                             </span>
                                         </td>
 
-                                        <td class="table-topic-title" title="{{ bet.optid.topicid.topictitle }}">
-                                            {{ bet.optid.topicid.topictitle }}
+                                        <td title="{{ bet.optid.topicid.topictitle }}">
+                                            <div class="table-topic-title">
+                                                {{ bet.optid.topicid.topictitle }}
+                                            </div>
                                         </td>
 
                                         <td class="table-option-text">
@@ -479,7 +481,7 @@
                 recoveryRateEl.textContent = `${rate}%`;
                 recoveryRateEl.style.color = rate >= 100 ? "#ff530d" : "#64748b";
             } else {
-                recoveryRateEl.textContent = "--- % (結果待ち)";
+                recoveryRateEl.textContent = "結果待ち";
                 recoveryRateEl.style.color = "#64748b";
             }
         }
