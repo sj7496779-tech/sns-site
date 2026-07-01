@@ -12,29 +12,21 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# BASE_DIR はこの Django プロジェクトのルートディレクトリです。
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# アプリケーションの機密キー。公開リポジトリに置かないのが原則です。
 SECRET_KEY = 'django-insecure--3#p6n-f9ga@7!a%1ll9#i*$dzbe-f4#a#2uts!=ptno!w0#o+'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# デバッグモード。開発環境では True にしてエラー情報を確認します。
 DEBUG = True
 
+# 許可するホスト名のリスト。'*' はすべて許可しますが、本番では絞るべきです。
 ALLOWED_HOSTS = ['*']
 
-# CSRFも一文字も間違えないように以下のように設定
-CSRF_TRUSTED_ORIGINS = [
-    'https://moneybags-plausibly-unless.ngrok-free.dev',
-]
 
 
-# Application definition
-
+# インストール済みアプリケーション。
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,6 +38,7 @@ INSTALLED_APPS = [
 ]
 
 
+# リクエスト/レスポンスの処理フローに入るミドルウェアの順番を定義します。
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -57,10 +50,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# プロジェクトの URL 設定を読み込む場所。
 ROOT_URLCONF = 'sns_project.urls'
 
-# sns_project/settings.py
-
+# Django のテンプレートエンジン設定。
+# 'DIRS' にはプロジェクト共通のテンプレートフォルダを追加しています。
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -77,7 +71,13 @@ TEMPLATES = [
     },
 ]
 
+# WSGI アプリケーションのパス。同期サーバーがこの値を使って Django を起動します。
 WSGI_APPLICATION = 'sns_project.wsgi.application'
+
+
+# データベース設定。ここでは SQLite を使い、環境によってファイルパスを切り替えています。
+# - 通常の開発環境ではプロジェクト直下の db.sqlite3 を使います。
+# - RENDER のような特定のホスティング環境では data/db.sqlite3 に切り替えます。
 
 import os
 
@@ -94,6 +94,7 @@ DATABASES = {
 }
 
 
+# パスワード検証の設定。開発環境でも基本的なチェックを有効にしています。
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -125,27 +126,32 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+# 静的ファイルの設定。CSS や JavaScript を配置する場所を指定します。
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+# メディアファイルの設定。ユーザーがアップロードした画像などを保存します。
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # sns_project/settings.py の一番下に追記
 
-# ログイン・ログアウトした後のリダイレクト先
-LOGIN_REDIRECT_URL = 'top_page'  # ログインしたらトップページ（掲示板）へ
-LOGOUT_REDIRECT_URL = 'login'     # ログアウトしたらログインページへ
-LOGIN_URL = 'login'              # ログインしていない時に強制移動させるURL
+# 認証後のリダイレクト先やログイン必須時の遷移先を設定します。
+LOGIN_REDIRECT_URL = 'top_page'  # ログイン後に移動する先
+LOGOUT_REDIRECT_URL = 'login'     # ログアウト後に移動する先
+LOGIN_URL = 'login'              # ログイン必須ビューへリダイレクトするときに使う URL 名
 
 
 import os
+# 本番環境で `python manage.py collectstatic` を実行したときに、すべての静的ファイルをまとめて置くディレクトリです。
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# WhiteNoise を使って静的ファイルを圧縮・キャッシュ対応で配信します。
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
+# JSON レスポンスに日本語を含めるときに Unicode をそのまま出力します。
 JSON_AS_ASCII = False
 
 # 適切な自動主キーのデフォルト（警告回避）
