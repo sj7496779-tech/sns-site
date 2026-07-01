@@ -49,7 +49,7 @@
     <div id="chatModal" class="modal-overlay">
         <div class="modal-content card chat-modal-size">
             <div class="modal-header">
-                <h3 class="modal-title-text">📝 新しい投稿</h3>
+                <h3 class="modal-title-text">新しい投稿</h3>
                 <button type="button" id="closeChatModalBtn" class="modal-close-x">&times;</button>
             </div>
             
@@ -64,16 +64,16 @@
                 </div>
 
                 <div class="form-group margin-top-md">
-                    <label class="form-label-bold">🖼️ 画像を添付する（任意）</label>
+                    <label class="form-label-bold">画像を添付する（任意）</label>
                     <input type="file" name="chat_image" accept="image/*" class="form-upload-file">
                 </div>
-                
+
                 <div class="form-group margin-top-md">
-                    <label class="form-label-bold">🎲 ブックメーカーのお題を引用する（任意）</label>
+                    <label class="form-label-bold">ブックメーカーのお題を引用する（任意）</label>
                     <select name="topic_id" class="form-select-custom">
-                        <option value="">-- お題を選択しない（通常のつぶやき） --</option>
+                        <option value="">お題を選択しない</option>
                         {% for topic in active_topics %}
-                            <option value="{{ topic.topicid }}">🏆 {{ topic.topictitle }}</option>
+                            <option value="{{ topic.topicid }}">🎲 {{ topic.topictitle }}</option>
                         {% endfor %}
                     </select>
                 </div>
