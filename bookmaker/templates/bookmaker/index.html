@@ -74,7 +74,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for bet in my_bets %}
+                                {% for bet in my_bets reversed %}
                                     <tr class="bet-item {% if bet.optid.topicid.status == 'closed' %}{% if bet.optid.is_correct %}tr-win{% else %}tr-lose{% endif %}{% else %}tr-pending{% endif %}">
                                         <td>
                                             <span class="bet-badge-wrap">
