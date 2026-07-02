@@ -56,7 +56,7 @@
             <form method="POST" action="{% url 'create_chat' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="form-group">
-                    <textarea name="chat_text" id="chat_text" placeholder="メッセージを入力..." required rows="4" class="chat-textarea"></textarea>
+                    <textarea name="chat_text" id="chat_text" placeholder="メッセージを入力（200文字まで）" required rows="4" class="chat-textarea" maxlength="200"></textarea>
                 </div>
 
                 <div style="position: relative;">
